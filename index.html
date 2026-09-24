@@ -2423,6 +2423,18 @@ function renderResumePrompt(saved) {
 
 let pendingResume = null;
 (function initRoute() {
+  // Anonymous visit log — fires once per page load, regardless of entry
+  // point (base link or a specific ?set= link), and before any registration
+  // happens. This is what lets total traffic be measured, not just people
+  // who went on to actually start an exam.
+  logEvent('page_view', {
+    setName: (function () {
+      const p = new URLSearchParams(window.location.search).get('set');
+      return (p && EXAM_SETS[p]) ? EXAM_SETS[p].name : '';
+    })(),
+    referrer: (typeof document !== 'undefined' && document.referrer) ? document.referrer : '',
+  });
+
   const saved = loadProgress();
   if (saved && saved.setKey && EXAM_SETS[saved.setKey]) {
     pendingResume = saved;
