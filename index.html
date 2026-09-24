@@ -1551,15 +1551,26 @@ async function setSiteConfig(patch) {
    ========================================================= */
 const SHEET_LOG_URL = 'https://script.google.com/macros/s/AKfycbzwkO-3Q4b2aJ_zlYcZnypJ0V1DuWvEwHa6RSoL1fc3yO8LDQe0HMMrIC3TN46HujCX/exec';
 
+// Returns a Promise<boolean> so callers that need to confirm delivery (like the
+// feedback button) can show the person a real result instead of assuming success.
+// Also logs to the browser console either way, so it's inspectable via DevTools.
 function logEvent(event, data) {
-  try {
-    fetch(SHEET_LOG_URL, {
-      method: 'POST',
-      mode: 'no-cors', // Apps Script web apps don't return CORS headers; this avoids a blocked preflight.
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // keeps the request in the CORS "simple request" category
-      body: JSON.stringify({ event, ...data }),
-    }).catch(() => {}); // best-effort — never let a network hiccup affect the person's experience
-  } catch (e) { /* fetch unsupported or blocked in this context — silently skip */ }
+  return fetch(SHEET_LOG_URL, {
+    method: 'POST',
+    // No `mode: 'no-cors'` here on purpose — that mode makes the response
+    // opaque, so we could never tell a real failure from a real success.
+    // text/plain keeps this a CORS "simple request" (no preflight needed)
+    // while still letting us read the actual result back.
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ event, ...data }),
+  }).then((res) => {
+    if (!res.ok) { console.warn('[CIS-DF logger] non-OK response for', event, res.status); return false; }
+    console.log('[CIS-DF logger] logged', event);
+    return true;
+  }).catch((err) => {
+    console.warn('[CIS-DF logger] request failed for', event, err);
+    return false;
+  });
 }
 
 function domainSummary(domainTally) {
@@ -2312,8 +2323,9 @@ function renderResults() {
     }
   });
 
-  document.getElementById('submitFeedbackBtn').addEventListener('click', () => {
+  document.getElementById('submitFeedbackBtn').addEventListener('click', async () => {
     const statusEl = document.getElementById('feedbackStatus');
+    const btn = document.getElementById('submitFeedbackBtn');
     const nameEntered = document.getElementById('feedbackName').value.trim();
     const nameParts = nameEntered.split(/\s+/);
     const firstName = nameParts[0] || (state.registrant ? state.registrant.firstName : '');
@@ -2326,15 +2338,19 @@ function renderResults() {
       return;
     }
 
+    btn.disabled = true;
+    statusEl.textContent = 'Sending…';
+
     // Best-effort: try the in-app database too, in case this viewer happens
-    // to have access to it. The sheet logger below is what actually
+    // to have access to it. The sheet logger is the one that actually
     // guarantees delivery, regardless of account or hosting.
     dbRecordFeedback({
       rating: starValue || null, comments: comments || null, firstName, lastName, email,
       setKey: state.setKey, setName: set.name, score, total, pct,
       visible: false, source: 'results', submittedAt: new Date().toISOString()
     });
-    logEvent('feedback', {
+
+    const ok = await logEvent('feedback', {
       attemptId: state.attemptId, firstName, lastName, email,
       setName: set.name, score, total, pct,
       passFail: passed ? 'PASS' : 'FAIL',
@@ -2342,8 +2358,12 @@ function renderResults() {
       rating: starValue || '', comments,
     });
 
-    statusEl.textContent = 'Thank you — sent.';
-    document.getElementById('submitFeedbackBtn').disabled = true;
+    if (ok) {
+      statusEl.textContent = 'Thank you — sent.';
+    } else {
+      statusEl.textContent = 'Could not reach the log — please try again in a moment.';
+      btn.disabled = false; // let them retry rather than stranding them on a false success
+    }
   });
 
   document.getElementById('retakeBtn').addEventListener('click', () => {
