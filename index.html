@@ -1543,34 +1543,36 @@ async function setSiteConfig(patch) {
 }
 
 /* =========================================================
-   EXTERNAL TRACKING FALLBACK — Google Form
-   For anyone without a Claude account, or signed in outside
-   the Deloitte organization, whose results/feedback can't
-   reach the in-app database (a platform restriction, not a
-   bug). This form works for any visitor, no account needed,
-   and answers land in a Sheet only the owner can see.
+   UNIVERSAL SILENT TRACKING — Google Apps Script logger
+   Works for absolutely anyone, any hosting, any account
+   status, with zero extra screens or clicks beyond the
+   normal exam flow. Fires in the background at each key
+   moment; never blocks or interrupts the person using the app.
    ========================================================= */
-const GOOGLE_FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLScAfmIbDocDMQiuuyKu9cFQXDKdaoRhSUyyovr62udf7LRgAA/viewform';
-const GOOGLE_FORM_FIELDS = {
-  firstName: 'entry.533595434',
-  lastName: 'entry.977468947',
-  email: 'entry.1917700046',
-  setName: 'entry.189742627',
-  score: 'entry.592361320',
-  total: 'entry.1641651190',
-  pct: 'entry.871083943',
-  passFail: 'entry.2016470934',
-  downloaded: 'entry.2146492989',
-  rating: 'entry.129705799',
-  comments: 'entry.996622322',
-};
-function buildExternalFormUrl(fields) {
-  const params = new URLSearchParams();
-  Object.entries(GOOGLE_FORM_FIELDS).forEach(([key, entryId]) => {
-    const val = fields[key];
-    if (val !== undefined && val !== null && val !== '') params.set(entryId, String(val));
-  });
-  return GOOGLE_FORM_BASE + '?' + params.toString();
+const SHEET_LOG_URL = 'https://script.google.com/macros/s/AKfycbzwkO-3Q4b2aJ_zlYcZnypJ0V1DuWvEwHa6RSoL1fc3yO8LDQe0HMMrIC3TN46HujCX/exec';
+
+function logEvent(event, data) {
+  try {
+    fetch(SHEET_LOG_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script web apps don't return CORS headers; this avoids a blocked preflight.
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // keeps the request in the CORS "simple request" category
+      body: JSON.stringify({ event, ...data }),
+    }).catch(() => {}); // best-effort — never let a network hiccup affect the person's experience
+  } catch (e) { /* fetch unsupported or blocked in this context — silently skip */ }
+}
+
+function domainSummary(domainTally) {
+  return Object.entries(domainTally || {}).map(([d, v]) => `${d} ${v.correct}/${v.total}`).join('; ');
+}
+
+async function fetchApprovedComments() {
+  try {
+    const res = await fetch(SHEET_LOG_URL + '?public=1');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (e) { return []; } // network hiccup, blocked context, or nothing approved yet — fail quietly
 }
 
 function buildResultsPDF(payload) {
@@ -1729,28 +1731,22 @@ function renderLanding() {
   const adminBtn = document.getElementById('adminBtn');
   if (adminBtn) adminBtn.addEventListener('click', () => { state.screen = 'admin'; render(); window.scrollTo(0,0); });
 
-  // comments showcase — only fetched/shown if the owner has turned it on and there's at least one approved comment
+  // comments showcase — reads directly from the Sheet; only rows the
+  // owner has explicitly marked "Visible = TRUE" ever show up here.
   (async () => {
-    if (!dbNS) return;
-    const cfg = await getSiteConfig();
-    if (!cfg.showComments) return;
-    try {
-      const snap = await dbNS.collection('feedback').where('visible', '==', true).limit(30).get();
-      const rows = (snap && snap.docs) ? snap.docs.map(d => d.data()).filter(d => d.comments) : [];
-      if (!rows.length) return;
-      rows.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
-      const cards = rows.slice(0, 9).map(d => {
-        const stars = d.rating ? '&#9733;'.repeat(d.rating) + '&#9734;'.repeat(5 - d.rating) : '';
-        return `<div class="comment-card">
-          ${stars ? `<div class="comment-stars">${stars}</div>` : ''}
-          <p class="comment-text">"${d.comments}"</p>
-          <p class="comment-author">&mdash; ${d.firstName || 'Anonymous'}</p>
-        </div>`;
-      }).join('');
-      document.getElementById('commentsSection').innerHTML = `
-        <h2 class="section-title" style="margin-top:0;">What people are saying</h2>
-        <div class="comments-grid">${cards}</div>`;
-    } catch (e) { /* silently skip the section if it fails to load */ }
+    const rows = await fetchApprovedComments();
+    if (!rows.length) return;
+    const cards = rows.slice(0, 9).map(d => {
+      const stars = d.rating ? '&#9733;'.repeat(d.rating) + '&#9734;'.repeat(5 - d.rating) : '';
+      return `<div class="comment-card">
+        ${stars ? `<div class="comment-stars">${stars}</div>` : ''}
+        <p class="comment-text">"${d.comments}"</p>
+        <p class="comment-author">&mdash; ${d.firstName || 'Anonymous'}</p>
+      </div>`;
+    }).join('');
+    document.getElementById('commentsSection').innerHTML = `
+      <h2 class="section-title" style="margin-top:0;">What people are saying</h2>
+      <div class="comments-grid">${cards}</div>`;
   })();
 }
 
@@ -1793,6 +1789,7 @@ function renderRegister() {
     const registrant = { firstName, lastName, email };
     const attemptId = uid();
     dbRecordStart(attemptId, registrant, state.setKey);
+    logEvent('started', { attemptId, firstName, lastName, email, setName: set.name });
 
     state = {
       screen: 'quiz', setKey: state.setKey, qIndex: 0,
@@ -2184,6 +2181,15 @@ function renderResults() {
 
   if (state.attemptId) {
     dbRecordFinish(state.attemptId, { score, total, pct, passed, domainTally });
+    logEvent('completed', {
+      attemptId: state.attemptId,
+      firstName: state.registrant ? state.registrant.firstName : '',
+      lastName: state.registrant ? state.registrant.lastName : '',
+      email: state.registrant ? state.registrant.email : '',
+      setName: set.name, score, total, pct,
+      passFail: passed ? 'PASS' : 'FAIL',
+      comments: domainSummary(domainTally),
+    });
   }
 
   const domainRows = Object.entries(domainTally).map(([d, v]) => {
@@ -2231,8 +2237,8 @@ function renderResults() {
           <input type="text" id="feedbackName" value="${registrantFullName}" placeholder="Name">
         </div>
         <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <a href="#" id="externalSaveLink" target="_blank" class="btn" style="text-decoration:none; display:inline-block;">Send my results &amp; feedback</a>
-          <span id="feedbackStatus" style="font-size:13px; color:var(--text-muted);">Opens a short form to confirm &mdash; no account needed.</span>
+          <button class="btn" id="submitFeedbackBtn">Send feedback</button>
+          <span id="feedbackStatus" style="font-size:13px; color:var(--text-muted);"></span>
         </div>
       </div>
 
@@ -2291,40 +2297,53 @@ function renderResults() {
       }
       downloadedFlag = true;
       dbRecordDownload(state.attemptId);
+      logEvent('downloaded', {
+        attemptId: state.attemptId,
+        firstName: state.registrant ? state.registrant.firstName : '',
+        lastName: state.registrant ? state.registrant.lastName : '',
+        email: state.registrant ? state.registrant.email : '',
+        setName: set.name, score, total, pct,
+        passFail: passed ? 'PASS' : 'FAIL',
+        downloaded: 'Yes',
+      });
     } catch (e) {
       if (e && e.code === 'declined') { statusEl.textContent = ''; }
       else { statusEl.textContent = 'Could not generate the download right now.'; }
     }
   });
 
-  document.getElementById('externalSaveLink').addEventListener('click', (e) => {
+  document.getElementById('submitFeedbackBtn').addEventListener('click', () => {
+    const statusEl = document.getElementById('feedbackStatus');
     const nameEntered = document.getElementById('feedbackName').value.trim();
     const nameParts = nameEntered.split(/\s+/);
     const firstName = nameParts[0] || (state.registrant ? state.registrant.firstName : '');
     const lastName = nameParts.slice(1).join(' ') || (state.registrant ? state.registrant.lastName : '');
     const comments = document.getElementById('feedbackText').value.trim();
+    const email = state.registrant ? state.registrant.email : '';
 
-    // Best-effort: also try the in-app database in case this viewer happens to
-    // have access to it. Harmless no-op for everyone else — the Google Form
-    // below is what actually guarantees delivery regardless of account.
+    if (!starValue && !comments) {
+      statusEl.textContent = 'Add a rating or a comment first.';
+      return;
+    }
+
+    // Best-effort: try the in-app database too, in case this viewer happens
+    // to have access to it. The sheet logger below is what actually
+    // guarantees delivery, regardless of account or hosting.
     dbRecordFeedback({
-      rating: starValue || null, comments: comments || null, firstName, lastName,
-      email: state.registrant ? state.registrant.email : '',
+      rating: starValue || null, comments: comments || null, firstName, lastName, email,
       setKey: state.setKey, setName: set.name, score, total, pct,
       visible: false, source: 'results', submittedAt: new Date().toISOString()
     });
-
-    const url = buildExternalFormUrl({
-      firstName, lastName,
-      email: state.registrant ? state.registrant.email : '',
-      setName: set.name,
-      score, total, pct,
+    logEvent('feedback', {
+      attemptId: state.attemptId, firstName, lastName, email,
+      setName: set.name, score, total, pct,
       passFail: passed ? 'PASS' : 'FAIL',
       downloaded: downloadedFlag ? 'Yes' : 'No',
-      rating: starValue || '',
-      comments,
+      rating: starValue || '', comments,
     });
-    e.currentTarget.setAttribute('href', url);
+
+    statusEl.textContent = 'Thank you — sent.';
+    document.getElementById('submitFeedbackBtn').disabled = true;
   });
 
   document.getElementById('retakeBtn').addEventListener('click', () => {
