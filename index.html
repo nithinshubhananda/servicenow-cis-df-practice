@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CIS-DF Practice Exams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #14181C;
+    --ink-panel: #1C2126;
+    --ink-line: #2B3138;
+    --paper: #F6F4EF;
+    --panel: #FFFFFF;
+    --line: #DAD6CC;
+    --text: #1B1F23;
+    --text-muted: #6B6860;
+    --text-dim: #9B9890;
+    --signal: #0E7C86;
+    --signal-strong: #0A5C64;
+    --signal-tint: #E4F1F1;
+    --amber: #B5750F;
+    --amber-tint: #F7ECD9;
+    --good: #2F7D4F;
+    --good-tint: #E5F3EA;
+    --bad: #B23A2E;
+    --bad-tint: #FBEAE8;
+    --radius: 3px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14181C;
+      --panel: #1C2126;
+      --line: #2B3138;
+      --text: #E8E6E0;
+      --text-muted: #A6A399;
+      --text-dim: #706D65;
+      --signal-tint: #16302F;
+      --amber-tint: #2B2213;
+      --good-tint: #16281D;
+      --bad-tint: #2B1A18;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14181C;
+    --panel: #1C2126;
+    --line: #2B3138;
+    --text: #E8E6E0;
+    --text-muted: #A6A399;
+    --text-dim: #706D65;
+    --signal-tint: #16302F;
+    --amber-tint: #2B2213;
+    --good-tint: #16281D;
+    --bad-tint: #2B1A18;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; }
+  a { color: var(--signal); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: var(--ink);
+    color: #F0EEE8;
+    padding: 56px 24px 40px;
+    border-bottom: 1px solid var(--ink-line);
+  }
+  .hero-inner { max-width: 760px; margin: 0 auto; }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 600;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
+  .hero p {
+    color: #B7B4AC;
+    font-size: 16px;
+    max-width: 56ch;
+    margin: 0 0 28px;
+  }
+  .domain-bar {
+    display: flex;
+    height: 34px;
+    border: 1px solid #3A4046;
+    overflow: hidden;
+  }
+  .domain-bar > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #14181C;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .domain-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin-top: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #9B9890;
+  }
+  .domain-legend span.sw {
+    display: inline-block;
+    width: 9px; height: 9px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ---------- Layout wrapper ---------- */
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ---------- Set selection panels ---------- */
+  .sets { display: grid; gap: 14px; margin-top: 8px; }
+  .set-panel {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .set-panel .info h3 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  .set-panel .info p { margin: 0; color: var(--text-muted); font-size: 13.5px; }
+  .set-panel .best {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+  .btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px 20px;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: var(--signal);
+    color: #fff;
+    transition: background .15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--signal-strong); }
+  .btn:disabled { background: var(--line); color: var(--text-dim); cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--line);
+  }
+  .btn.secondary:hover { border-color: var(--text-dim); background: transparent; }
+
+  .note {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  .quiz-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .progress-ticks {
+    display: flex;
+    gap: 3px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .progress-ticks .tick {
+    height: 5px;
+    flex: 1;
+    background: var(--line);
+  }
+  .progress-ticks .tick.done { background: var(--signal); }
+  .progress-ticks .tick.current { background: var(--amber); }
+  .q-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .domain-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    background: var(--signal-tint);
+    color: var(--signal-strong);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  :root[data-theme="dark"] .domain-tag,
+  @media (prefers-color-scheme: dark) { .domain-tag { color: #6FCBD1; } }
+
+  .q-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 28px 26px;
+  }
+  .q-text {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.45;
+    margin: 0 0 20px;
+  }
+  .q-hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin: -12px 0 18px;
+  }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 14px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    font-size: 15px;
+    transition: border-color .1s ease, background .1s ease;
+  }
+  .opt:hover { border-color: var(--text-dim); }
+  .opt .mark {
+    flex: 0 0 auto;
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--text-dim);
+    margin-top: 2px;
+    position: relative;
+  }
+  .opt.radio .mark { border-radius: 50%; }
+  .opt.checkbox .mark { border-radius: 2px; }
+  .opt.selected { border-color: var(--signal); background: var(--signal-tint); }
+  .opt.selected .mark { border-color: var(--signal); background: var(--signal); }
+  .opt.radio.selected .mark::after {
+    content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #fff;
+  }
+  .opt.checkbox.selected .mark::after {
+    content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(40deg);
+  }
+
+  .quiz-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  /* ---------- Timer & pause ---------- */
+  .timer-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .timer-display {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    letter-spacing: 0.03em;
+  }
+  .timer-display.timer-warn { color: var(--amber); border-color: var(--amber); }
+  .timer-display.timer-danger { color: var(--bad); border-color: var(--bad); }
+  .small-btn { padding: 8px 14px; font-size: 12.5px; }
+
+  /* ---------- Flag for review ---------- */
+  .q-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .flag-btn {
+    flex: 0 0 auto;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .flag-btn.flagged { border-color: var(--amber); color: var(--amber); background: var(--amber-tint); }
+
+  /* ---------- Review grid ---------- */
+  .review-grid-legend {
+    display: flex;
+    gap: 18px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 10px 0 18px;
+    flex-wrap: wrap;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    margin-right: 5px;
+    vertical-align: middle;
+    border: 1px solid var(--line);
+  }
+  .legend-answered { background: var(--signal); border-color: var(--signal); }
+  .legend-unanswered { background: var(--panel); }
+  .legend-flagged { background: var(--amber-tint); border-color: var(--amber); }
+  .review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 6px;
+    margin-bottom: 30px;
+  }
+  .grid-cell {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 10px 0;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .grid-cell.answered { background: var(--signal-tint); color: var(--signal-strong); border-color: var(--signal); }
+  .grid-cell.cell-flagged { box-shadow: inset 0 0 0 2px var(--amber); }
+
+  /* ---------- Feedback form ---------- */
+  .feedback-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 24px 26px;
+    margin-top: 36px;
+  }
+  .star-row { display: flex; gap: 6px; margin: 10px 0 18px; }
+  .star-btn {
+    width: 38px; height: 38px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .star-btn.on { background: var(--amber-tint); border-color: var(--amber); color: var(--amber); }
+  .feedback-card textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    border-radius: var(--radius);
+    resize: vertical;
+  }
+
+  /* ---------- Comments showcase (landing page) ---------- */
+  .comments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 34px;
+  }
+  .comment-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 18px 18px;
+  }
+  .comment-stars { color: var(--amber); font-size: 13px; margin-bottom: 8px; }
+  .comment-text { font-size: 14px; line-height: 1.5; margin: 0 0 10px; font-style: italic; }
+  .comment-author { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); margin: 0; }
+
+  /* ---------- Admin moderation controls ---------- */
+  .mod-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .switch {
+    position: relative;
+    width: 40px; height: 22px;
+    flex: 0 0 auto;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-track {
+    position: absolute; inset: 0;
+    background: var(--line);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .switch-track::before {
+    content: '';
+    position: absolute; left: 3px; top: 3px;
+    width: 16px; height: 16px;
+    background: #fff;
+    transition: transform .15s;
+  }
+  .switch input:checked + .switch-track { background: var(--good); }
+  .switch input:checked + .switch-track::before { transform: translateX(18px); }
+  .mod-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .mod-btn.on { border-color: var(--good); color: var(--good); background: var(--good-tint); }
+
+  /* ---------- Results ---------- */
+  .score-block {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 28px 26px;
+    margin-bottom: 24px;
+  }
+  .score-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .score-pct { font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); font-size: 15px; margin-top: 6px; }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 10px;
+    display: inline-block;
+  }
+  .badge.pass { background: var(--good-tint); color: var(--good); }
+  .badge.fail { background: var(--bad-tint); color: var(--bad); }
+
+  .domain-scores { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+  .dscore-row { display: grid; grid-template-columns: 140px 1fr 56px; align-items: center; gap: 12px; }
+  .dscore-row .dlabel { font-size: 13.5px; color: var(--text-muted); }
+  .dscore-track { height: 8px; background: var(--line); position: relative; }
+  .dscore-fill { height: 100%; background: var(--signal); }
+  .dscore-val { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; color: var(--text-muted); }
+
+  .review-item {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 20px 22px;
+    margin-bottom: 10px;
+  }
+  .review-item.wrong { border-left: 3px solid var(--bad); }
+  .review-item.right { border-left: 3px solid var(--good); }
+  .review-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .review-q { font-weight: 500; font-size: 15.5px; margin: 0 0 12px; }
+  .review-ans { font-size: 13.5px; margin: 4px 0; }
+  .review-ans .lbl { color: var(--text-muted); }
+  .review-ans .val.wrong-val { color: var(--bad); }
+  .review-ans .val.right-val { color: var(--good); }
+  .review-explain {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+  .review-explain strong { color: var(--text); }
+  .review-doclink { margin-top: 8px; }
+  .review-doclink a { font-size: 12px; color: var(--signal); text-decoration: none; }
+  .review-doclink a:hover { text-decoration: underline; }
+
+  h2.section-title { font-size: 15px; text-transform: none; margin: 36px 0 14px; font-weight: 600; }
+
+  footer.page-foot {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    margin-top: 50px;
+  }
+
+  .top-actions { display: flex; gap: 10px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+
+  /* ---------- Registration form ---------- */
+  .reg-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 32px 28px;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+  .reg-card h2 { margin: 0 0 6px; font-size: 21px; font-weight: 600; }
+  .reg-card .sub { color: var(--text-muted); font-size: 13.5px; margin: 0 0 24px; }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    text-transform: none;
+  }
+  .field input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    border-radius: var(--radius);
+  }
+  .field input:focus { outline: 2px solid var(--signal); outline-offset: -1px; border-color: var(--signal); }
+  .field .err { color: var(--bad); font-size: 12px; margin-top: 5px; display: none; }
+  .field.invalid input { border-color: var(--bad); }
+  .field.invalid .err { display: block; }
+  .reg-privacy {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 18px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Admin panel ---------- */
+  .admin-link {
+    text-align: center;
+    margin-top: 30px;
+  }
+  .admin-link button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  table.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+  table.admin-table th, table.admin-table td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    text-align: left;
+  }
+  table.admin-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    background: var(--panel);
+  }
+  .admin-note { color: var(--text-dim); font-size: 12.5px; margin-top: 14px; }
+  .admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* =========================================================
+     RESPONSIVE — tablet/phone breakpoints. Desktop styles above
+     are the baseline; these adjust density and layout as the
+     viewport narrows so the same page works well on a laptop,
+     a tablet, or a phone in either orientation.
+     ========================================================= */
+
+  /* Tablet & large phones (landscape) */
+  @media (max-width: 760px) {
+    .wrap { padding-left: 18px; padding-right: 18px; }
+    .hero { padding: 40px 18px 30px; }
+    .hero h1 { font-size: 26px; }
+    .domain-legend { gap: 4px 12px; font-size: 11px; }
+  }
+
+  /* Phones (portrait) */
+  @media (max-width: 640px) {
+    .hero { padding: 32px 16px 24px; }
+    .wrap { padding-top: 24px; padding-left: 16px; padding-right: 16px; }
+    .set-panel { flex-direction: column; align-items: stretch; gap: 12px; padding: 18px; }
+    .set-panel .btn { width: 100%; }
+
+    /* Timer bar: keep the clock and Pause together, let Review wrap to its own row if needed */
+    .timer-bar { gap: 8px; }
+    .timer-display { font-size: 18px; padding: 5px 10px; }
+    .small-btn { padding: 8px 12px; font-size: 12px; }
+
+    /* Question card: flag button drops below the question text instead of squeezing beside it */
+    .q-card { padding: 20px 16px; }
+    .q-card-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .flag-btn { align-self: flex-start; }
+    .q-text { font-size: 16.5px; }
+    .opt { padding: 14px 14px; font-size: 14.5px; } /* slightly taller tap target for touch */
+
+    /* Nav buttons: full-width and stacked, easier to tap accurately than small side-by-side buttons */
+    .quiz-nav { flex-direction: column-reverse; }
+    .quiz-nav .btn { width: 100%; }
+    .top-actions { flex-direction: column; }
+    .top-actions .btn { width: 100%; }
+
+    /* Review grid: slightly smaller cells so more fit per row on a narrow screen */
+    .review-grid { grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 5px; }
+    .review-grid-legend { gap: 10px 16px; font-size: 11.5px; }
+
+    .score-block { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .score-num { font-size: 36px; }
+    .dscore-row { grid-template-columns: 96px 1fr 44px; gap: 8px; }
+
+    .reg-card { padding: 24px 20px; }
+
+    .star-row { justify-content: center; }
+    .feedback-card { padding: 20px 18px; }
+
+    /* Admin tables scroll horizontally rather than squeezing columns unreadably */
+    table.admin-table { font-size: 12px; min-width: 560px; }
+  }
+
+  /* Small phones */
+  @media (max-width: 400px) {
+    .hero h1 { font-size: 22px; }
+    .domain-bar { height: 28px; }
+    .domain-bar > div { font-size: 10px; }
+    .review-grid { grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); }
+    .grid-cell { padding: 8px 0; font-size: 12px; }
+    .timer-display { font-size: 16px; }
+    .q-text { font-size: 15.5px; }
+  }
+
+  /* Larger desktop screens: a little extra breathing room, not just a wider centered column */
+  @media (min-width: 1200px) {
+    .wrap { max-width: 820px; }
+    .q-text { font-size: 19px; }
+  }
+
+  /* Respect reduced-motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   QUESTION POOLS — sliced into 3 full 75-question exam sets
+   Domain weights per set: Govern 26, Insight 15, Configuration 13, Ingest 13, CSDM Fundamentals 8
+   ========================================================= */
+const D = { GOV:"Govern", INS:"Insight", CFG:"Configuration", ING:"Ingest", CSDM:"CSDM Fundamentals" };
+
+function mk(domain, type, q, options, correct, explain) {
+  const correctArr = Array.isArray(correct) ? correct : [correct];
+  return { domain, type, q, options, correct: correctArr, explain };
+}
+
+/* ---------------- GOVERN POOL (need 78) ---------------- */
+const GOV_POOL = [
+mk(D.GOV,"single","A CMDB Administrator needs to verify that data no longer applicable to the business is identified and removed from the CMDB. Which tool is built for this governance task?",
+  ["CI Class Manager","CMDB Data Manager","CMDB Health Dashboard","De-duplication Templates"],1,
+  "CMDB Data Manager is the governance engine for lifecycle policies. Removing data no longer applicable is a lifecycle action, which lives in Data Manager, not the Health Dashboard (which only measures quality)."),
+mk(D.GOV,"single","Which set of policy types can genuinely be created within CMDB Data Manager?",
+  ["De-duplication, Reconciliation","Retire, Archive, Delete, Attestation, Certification","Discovery, Integration, Mapping"],1,
+  "Data Manager supports five real policy types: Retire, Archive, Delete, Attestation, and Certification. De-duplication has its own engine and Reconciliation is IRE-governed; neither is a Data Manager policy type."),
+mk(D.GOV,"single","Using baseline Data Manager policies, what condition must a CI meet before it can be archived or deleted?",
+  ["It must be marked inactive","It must be retired and at end of life","It must be flagged as duplicate"],1,
+  "Archive and Delete policies can only process CIs already retired and matching the class retirement definition. You cannot skip straight from operational to archived/deleted."),
+mk(D.GOV,"single","A CMDB team wants to remove short-lived cloud CIs that have not been discovered in over a week. After retiring them, what is the recommended next action?",
+  ["Create a delete policy","Create a scheduled job","Create a business rule"],0,
+  "Once ephemeral CIs are retired, a Delete policy is the appropriate next step since short-lived CIs typically have no long-term compliance value worth archiving."),
+mk(D.GOV,"single","What is the fastest, governance-approved way to remove all Linux servers that have not been updated in six months?",
+  ["Create a business rule","Create a scheduled job","Create an archive policy"],2,
+  "Stale, unused CIs are handled by lifecycle governance — an Archive policy in Data Manager, consistent with the platform's built-in retention framework."),
+mk(D.GOV,"multi","Which two policy types in CMDB Data Manager are explicitly lifecycle-removal actions (as opposed to verification actions)?",
+  ["Archive","Attestation","Delete","Certification"],[0,2],
+  "Archive and Delete both remove or relocate data out of the active CMDB. Attestation and Certification are verification actions — they confirm existence or accuracy, they do not remove data."),
+mk(D.GOV,"single","A CMDB Administrator wants insight into whether their CMDB configuration follows ServiceNow-recommended structure. Which tool answers this?",
+  ["CMDB Data Foundation Dashboard","CMDB Workspace","CMDB Health Dashboard","CMDB Data Manager"],0,
+  "\"Configured according to recommended practice\" is a framework-alignment question, which is exactly what the CMDB/CSDM Data Foundations Dashboard measures — not an operational tool like Workspace."),
+mk(D.GOV,"single","Which of these is an actual capability of the CMDB/CSDM Data Foundations Dashboard?",
+  ["It automatically merges duplicate Business Application records","It tracks Crawl-to-Fly maturity trends over time and surfaces structural insights","It lists CIs missing required fields"],1,
+  "Duplicate-merging and missing-field reporting both belong to the CMDB Health Dashboard (data quality). The Data Foundations Dashboard's job is tracking framework/maturity alignment over time."),
+mk(D.GOV,"multi","Preparing a justification to use the CMDB Data Foundations Dashboard. Which two benefits genuinely align with its usage?",
+  ["Helps detect and eliminate duplicate records","Provides actionable insights to improve data quality/completeness of the model","Automates the approval process for change management","Enables monitoring/tracking of CMDB structural health over time"],[1,3],
+  "Duplicate detection is a Health Dashboard function, not a Data Foundations Dashboard one. The real benefits here are structural insight and ongoing maturity monitoring."),
+mk(D.GOV,"single","What are the three real sub-metrics of the CMDB Health Dashboard's Correctness scorecard?",
+  ["Required, Recommended, Audit","Duplicate, Orphan, Stale","Certification Filter, Certification Template, Audit"],1,
+  "Correctness covers Duplicate, Orphan, and Stale CIs — data-hygiene problems. Required/Recommended belong to Completeness; Certification words belong to Compliance."),
+mk(D.GOV,"single","What is the default staleness period configured on the base cmdb_ci class?",
+  ["24 hours","30 days","60 days","90 days"],2,
+  "ServiceNow ships a default staleness rule set to 60 days on the base class, overridable per-class in CI Class Manager."),
+mk(D.GOV,"single","A CMDB Administrator wants meaningful results on the Compliance scorecard for server records not on the latest patch. What must be configured?",
+  ["Technical Service Offerings, Dynamic CI Groups, CMDB Groups","Certification Filter, Certification Template, Audit","Stale, Orphan, Duplicate rules"],1,
+  "Patch-level compliance is a template-matching question, which is exactly what Compliance's three components — Certification Filter, Certification Template, and Audit — are built for."),
+mk(D.GOV,"single","A CMDB Administrator wants to leverage the Staleness metric on the Correctness scorecard. Which field is used to calculate the metric's duration?",
+  ["Created on","Last modified on","Most recent discovery"],2,
+  "Staleness is measured against how long it has been since a CI was last successfully discovered or updated by a source — the \"most recent discovery\" field."),
+mk(D.GOV,"single","Which scorecard would show that 40% of CI records in a class are missing their required fields?",
+  ["Correctness","Completeness","Compliance"],1,
+  "\"Missing data\" is the defining question of Completeness. Correctness assumes a value exists but questions whether it can be trusted."),
+mk(D.GOV,"single","A team wants to compile a leadership presentation covering Duplicate, Orphan, and Stale CI counts. Which scorecard supplies all three?",
+  ["Correctness","Compliance","Completeness"],0,
+  "All three metrics — Duplicate, Orphan, Stale — belong to a single scorecard: Correctness."),
+mk(D.GOV,"single","A facilities team wants a recurring task that simply confirms whether a server still physically exists. Which Data Manager policy fits?",
+  ["Retire","Attestation","Certification","Delete"],1,
+  "Attestation is purely an existence check. Certification checks whether specific field values are accurate — a different question."),
+mk(D.GOV,"single","IT wants a policy that generates a task letting the assignee correct an inaccurate OS version field. Which policy type?",
+  ["Attestation","Certification","Archive"],1,
+  "Certification policies verify and allow correction of specific field values against an expected standard; Attestation never involves editing data."),
+mk(D.GOV,"single","What is the real, practical difference between an Attestation policy and a Certification policy?",
+  ["Attestation confirms a CI still exists; Certification validates that specific field values are correct","Attestation validates field values; Certification confirms the CI still exists","There is no functional difference between them"],0,
+  "Attestation answers \"does it still exist?\" Certification answers \"is the data on it correct?\" — two distinct verification questions."),
+mk(D.GOV,"single","A hospital network needs to confirm hundreds of imaging devices are still physically present across its facilities. Which policy type is the correct fit?",
+  ["Certification","Attestation","Retire"],1,
+  "Confirming physical presence is an existence check — Attestation, not the field-accuracy check that Certification performs."),
+mk(D.GOV,"single","An auditor needs proof that laptop encryption-status fields match the corporate security standard. Which policy type addresses this?",
+  ["Attestation","Certification","Delete"],1,
+  "Matching a field value against a defined standard (encryption status vs. policy) is a Certification scenario — verifying correctness, not existence."),
+mk(D.GOV,"single","What is the preferred, most efficient way to manage an ongoing backlog of duplicate CI records?",
+  ["The de-duplication task module, resolved one at a time","The de-duplication dashboard inside CMDB Workspace","My Tasks in the Application Navigator"],1,
+  "ServiceNow consolidated duplicate remediation into the De-duplication Dashboard inside CMDB Workspace — grouped duplicate sets with merge actions in one place."),
+mk(D.GOV,"single","Dozens of near-identical duplicate CI pairs need resolving with the same merge logic. What is the most efficient tool?",
+  ["The Duplicate CI Remediator wizard, one pair at a time","A custom background script","A de-duplication template applied in bulk"],2,
+  "A De-Duplication Template defines the merge rule once and applies it across a whole batch — the Remediator Wizard is for individual, judgment-call cases."),
+mk(D.GOV,"single","Two duplicate CIs are found: one from manual import with an accurate business-app relationship, one from Discovery with the freshest IP address. What is the smartest resolution via the Duplicate CI Remediator?",
+  ["Delete the manually imported CI entirely","Retain the discovered CI, but merge in the relationship from the manually imported CI","Keep both records permanently"],1,
+  "This preserves both strengths — fresher attribute data from Discovery, and the valuable relationship from the manual import — rather than losing one entirely."),
+mk(D.GOV,"single","A CMDB Data Foundations Dashboard shows a low \"Unique Locations\" result. What is the recommended remediation process?",
+  ["Automatically merge them via the Duplicate CI Remediator","Review both location records, reassign affected CIs, then delete the duplicate","Keep both location records since either could be valid"],1,
+  "Location is not a CI on the cmdb_ci table, so the CI-specific Remediator does not apply. The correct process is a manual, validated review-and-reassign, then delete."),
+mk(D.GOV,"single","CI Class Manager's \"Health Inclusion Rules\" tab is available under a CI class. What do these rules actually scope?",
+  ["Which CIs are included in Health Dashboard calculations","Which CIs the IRE will attempt to identify","Which CIs Discovery is allowed to touch"],0,
+  "Health Inclusion Rules filter which CIs count toward Health Dashboard scoring. They have no bearing on the IRE's identification process, a common point of confusion."),
+mk(D.GOV,"single","A Correctness scorecard for the Server class (60,000 CIs total) shows Duplicate evaluated at 59,000/60,000, but Orphan evaluated at only 45,000/50,000. What explains the scope difference?",
+  ["The Orphan metric has a Health Inclusion rule configured for the class","The Duplicate metric has a CMDB Group configured for the class","Both metrics always evaluate the same total population"],0,
+  "Health Inclusion Rules can be configured per metric, per class — here the Orphan metric has a rule narrowing its evaluated population to 50,000, while Duplicate has no such restriction."),
+mk(D.GOV,"single","Where in CMDB Workspace can de-duplication tasks generated from IRE-ingested data be located?",
+  ["The \"Important actions\" tile under the Home tab","The \"Total status\" tile under My Work","The \"CMDB feature adoption\" tile under Insights"],0,
+  "The Home tab's Important Actions tile surfaces governance items needing attention, including open de-duplication tasks, front and center."),
+mk(D.GOV,"single","Where does CMDB Data Manager actually let an administrator create, publish, and manage its governance policies?",
+  ["CI Class Manager","CMDB Workspace's Management tab","Service Operations Workspace"],1,
+  "Data Manager is housed inside CMDB Workspace, under its Management tab — not a fully separate application."),
+mk(D.GOV,"single","What mechanism directly ensures overall CMDB data volume stays manageable over time?",
+  ["Scheduled jobs","Business rules","Archive policies"],2,
+  "Archive (and Delete) policies actively remove or relocate aging, retired data — the direct volume-management mechanism."),
+mk(D.GOV,"single","A Computer CI's \"Assigned to\" field should stay synced with the same field on its related Asset record, without custom scripting. What native module handles this?",
+  ["A custom business rule the team writes and maintains","The Asset-CI Field Mapping module","Manually update both records whenever one changes"],1,
+  "The Asset-CI Field Mapping module syncs fields between a CI and its Asset record out of the box, replacing custom scripting."),
+mk(D.GOV,"multi","Which two native mechanisms keep Asset and CI records synchronized automatically, in both directions?",
+  ["A scheduled job that runs off-hours","A business rule on the CI table that updates Asset fields on change","A business rule on the Asset table that updates CI fields on change","A one-to-one physical mapping requirement"],[1,2],
+  "Two out-of-box business rules — one per table — keep Asset and CI fields aligned automatically whenever either record changes, with no scheduled job or scripting required."),
+mk(D.GOV,"single","CI Class Manager sets a class-wide default for \"Managed by Group.\" When configuring a Data Manager policy to leverage that same value, which field should be set?",
+  ["Approval Group","Managed By Group","Support Group"],1,
+  "The policy should reference the same field the ownership value actually lives in — Managed By Group."),
+mk(D.GOV,"multi","A Technical Service Offering is built on a Dynamic CI Group to keep ownership aligned. Which fields does this mechanism actually auto-sync onto member CIs?",
+  ["Approval Group","Managed by Group","Support Group","Change Group","Owned by Group"],[1,2,3],
+  "This mechanism syncs exactly three fields: Managed by Group, Support Group, and Change Group. Approval Group and Owned by Group are not part of it."),
+mk(D.GOV,"single","Reconciliation priorities are ServiceNow=100, Altiris=200, SCCM=300. Which statement is true, given lower numbers mean higher priority?",
+  ["ServiceNow can insert new records but can never update records created by Altiris or SCCM","Altiris can update records that were originally inserted by SCCM","SCCM, having the highest number, can override any other source's data"],1,
+  "Altiris (200) outranks SCCM (300) and can update its records. ServiceNow (100), the highest priority overall, absolutely can update Altiris/SCCM records — the opposite of option one. \"Highest number\" (300) actually means lowest priority."),
+mk(D.GOV,"single","Can a low-priority reconciliation source still insert a brand-new CI that does not yet exist in the CMDB?",
+  ["No, inserts are restricted to the highest-priority source only","Yes, any source can insert a new record regardless of priority number"],1,
+  "Priority governs updates to a field that already has a value from another source. It does not restrict inserting a brand-new CI — any authorized source can create one."),
+mk(D.GOV,"multi","Which two are genuine \"Dynamic Rule Type\" options when creating a Reconciliation Rule for CMDB 360/Multisource CMDB?",
+  ["Last Created","Most Reported","Last Updated","Smallest Value"],[1,2],
+  "Real Dynamic Rule Types include Most Reported, Last Updated, and Largest/Smallest Value. \"Last Created\" does not actually exist as a rule type."),
+mk(D.GOV,"single","A Dynamic Reconciliation Rule for RAM on the Server class is set to \"largest value.\" Sources report 4096, 4096, 8192, and 2048 MB. What value is written to the CMDB?",
+  ["4,096 MB","2,048 MB","8,192 MB"],2,
+  "The rule is a pure numeric comparison, not a frequency count — 8,192 is simply the largest number reported, regardless of how many sources agreed on 4,096."),
+mk(D.GOV,"single","Multiple data sources are authorized to update the same class and attributes. How does a Configuration Manager control which source is authoritative?",
+  ["Configure data refresh rules with a specific time period","Assign a priority to each data source in reconciliation rules","Manually run the data source updates in the correct order"],1,
+  "Source authority for conflicting field values is governed entirely by reconciliation priority, configured per data source."),
+mk(D.GOV,"single","How do CMDB governance tools, taken together, help an organization manage CIs and improve service delivery?",
+  ["Gaining visibility and control over CIs, and enhancing Service Management operations","Assisting with third-party integration vendor choices, and reducing hardware costs"],0,
+  "Governance's real scope is visibility/control driving better ITSM outcomes. Vendor choices and hardware cost reduction fall outside governance entirely."),
+mk(D.GOV,"multi","Which two of these are genuine, textbook business values a healthy CMDB delivers to the organization?",
+  ["Streamlining incident and change management","Automating financial asset depreciation tracking","Strengthening operational resiliency","Reducing hardware procurement cost"],[0,2],
+  "CMDB's value is operational efficiency and resiliency. Financial tracking and procurement cost both belong to Asset Management, a related but distinct discipline."),
+mk(D.GOV,"single","Priya is accountable end-to-end for the \"Payroll\" service portfolio, from design through retirement. Which CMDB-related role best describes this?",
+  ["CMDB Process Owner","Service or Product Owner","Configuration Manager / CMDB Admin"],1,
+  "Owning one named portfolio across its whole lifecycle is the Service/Product Owner definition, not the Process Owner (who owns the framework across every service)."),
+mk(D.GOV,"single","Who holds the highest-level role for overall CMDB privileges within an organization?",
+  ["CMDB Process Owner","Service or Product Owner","Configuration Manager / CMDB Admin","CI Analyst"],0,
+  "CMDB Process Owner owns the governance framework and rules that apply across every service, making it the highest-privilege role in the hierarchy."),
+mk(D.GOV,"single","Which role manages assigned CI tables day-to-day, keeps records updated, and resolves tasks related to CMDB records?",
+  ["CMDB Process Owner","Configuration Manager / CMDB Admin","CI Analyst"],1,
+  "This hands-on, table-level ownership describes the Configuration Manager/CMDB Admin role — distinct from the Process Owner (rules) and CI Analyst (read-only)."),
+mk(D.GOV,"single","Which role is limited to read-only access to CMDB data, reports, and dashboards?",
+  ["CI Analyst","Service or Product Owner","Configuration Manager / CMDB Admin"],0,
+  "CI Analyst is intentionally the lightest-touch role — visibility only, with no responsibility for actively managing CI records."),
+mk(D.GOV,"single","A CMDB Administrator is asked to run the \"Services Have Owners Identified\" playbook from the Data Foundations Dashboard. Which two remediation plays does it use?",
+  ["Analyze Data and Report Data","Fix Data and Govern Data","Audit Data and Certify Data"],1,
+  "This specific playbook's remediation plays are Fix Data (direct correction) and Govern Data (establishing ongoing ownership rules so the issue does not recur)."),
+mk(D.GOV,"single","A Playbook surfaced by the CMDB Data Foundations Dashboard typically includes which two types of documentation?",
+  ["Root Cause and Automated Remediation","Problem Overview and Problem Analysis","Certification Filter and Audit Log"],1,
+  "The two named documentation sections in these playbooks are Problem Overview (context/impact) and Problem Analysis (investigation steps) — Root Cause is folded into Analysis rather than being its own separate section."),
+mk(D.GOV,"single","An admin wants to improve data quality using the CMDB Health Dashboard. What actually needs to happen for health scores to generate at all?",
+  ["Nothing, scores calculate by default with zero setup","The scheduled jobs for the CMDB Health Dashboard must be activated","A separate plugin must be purchased and installed"],1,
+  "Health scores are calculated by pre-defined scheduled jobs, which must be activated — they do not run automatically the moment the dashboard exists."),
+mk(D.GOV,"single","A team wants to convert legacy CMDB status field values into the new CSDM life-cycle stage/status pairs. Which table is actually edited to define this conversion?",
+  ["Life Cycle Stage [life_cycle_stage]","Life Cycle Mapping [life_cycle_mapping]","Life Cycle Object [life_cycle_object]"],1,
+  "Life Cycle Mapping is the one editable conversion table. Stage and Stage Status values are populated by that mapping, not edited directly to perform a migration."),
+mk(D.GOV,"single","Which record attribute reflects a meta-level (broad) state in the CSDM life-cycle model?",
+  ["Life Cycle Stage","Life Cycle Stage Status","Life Cycle Object"],0,
+  "Life Cycle Stage is the top-level, broad state (e.g. \"Operational\" or \"Retired\") — the meta-level bucket."),
+mk(D.GOV,"single","Which record attribute reflects a finer, sub-level state nested within a life-cycle stage?",
+  ["Life Cycle Stage","Life Cycle Stage Status","Life Cycle Mapping"],1,
+  "Life Cycle Stage Status is the sub-level detail within a broader Stage (e.g. \"Awaiting Disposal\" under Retired)."),
+mk(D.GOV,"single","Which table determines which sub-level life-cycle status values are actually valid for a given CI type, such as Hardware vs. Document?",
+  ["Life Cycle Object","Life Cycle Mapping","Life Cycle Stage"],0,
+  "Life Cycle Object is essentially a lookup table telling the system which sub-level statuses are valid for a given CI type."),
+mk(D.GOV,"single","What is the actual purpose of CMDB Data Manager, most accurately stated?",
+  ["Automates the enforcement of relationship rules between CIs","Automates the archival and deletion of records based on retention policies","Encrypts archived records for enhanced security"],1,
+  "Retire, Archive, Delete, Attestation, and Certification are all retention/lifecycle-based — the true core purpose of Data Manager. Enforcing relationship rules is a CI Class Manager/IRE function instead."),
+mk(D.GOV,"single","An organization needs to maintain non-discoverable attributes, such as warranty expiration dates, on hardware CIs that automated discovery never touches. What method keeps these accurate?",
+  ["Create a new CI class specifically for non-discoverable attributes","Use the CMDB Reconciliation Engine to update the attributes","Use a scheduled data import to update the attributes from an external source"],2,
+  "Warranty data lives in an external system Discovery cannot probe. A scheduled data import pulls it in on a recurring basis, without unnecessary architectural overreach."),
+mk(D.GOV,"single","Yesterday, an Apache Web Server CI was discovered via Service Mapping. Today the owner upgrades the Apache version and reruns discovery. What happens?",
+  ["The Apache Web Server CI is reclassified as a Web Server CI","A duplication error occurs","The existing CI is reconciled and its version is updated"],2,
+  "The CI's identity does not change with a version bump — the IRE still recognizes it as the same CI and simply reconciles the updated version attribute."),
+mk(D.GOV,"single","What must be true for CMDB 360/Multisource CMDB to report on a CI's data at all?",
+  ["The data must have passed through the IRE's identification step","Reconciliation rules with source priorities must be fully configured"],0,
+  "CMDB 360 shows data even from sources that lost reconciliation, so priority configuration is not a prerequisite. What is required is correct identification of the CI by the IRE."),
+mk(D.GOV,"single","Which checkbox in CI Class Manager ensures only relevant CIs from managed classes appear on Incident, Problem, and Change records?",
+  ["Extensible","Independent","Principal Class"],2,
+  "Principal Class controls which classes surface as selectable top-level options in CI reference fields — this is the same concept across every form that references a CI."),
+mk(D.GOV,"single","A report shows CMDB Services with no owner listed. Using governance playbooks, what process play prevents this from recurring?",
+  ["Make the field 'Managed by' mandatory on all CIs","Make the field 'Owned by' mandatory","Set a default value on the Service Owner field"],1,
+  "A default value would satisfy \"not empty\" with a meaningless placeholder. Making 'Owned by' genuinely mandatory enforces real ownership at creation time — the actual governance fix."),
+mk(D.GOV,"single","A CMDB Administrator has a data filter for a Certification policy on the Server table: Operating System contains \"Server\" OR contains \"Linux\". Which of these values would this policy match?",
+  ["AIX and Windows 2019 Datacenter","Windows Server 2022 Datacenter and Linux CentOS","Only AIX"],1,
+  "This is a literal substring match, not a semantic one. \"Windows Server 2022 Datacenter\" contains \"Server\"; \"Linux CentOS\" contains \"Linux\". \"Windows 2019 Datacenter\" contains neither substring, despite intuitively feeling like a server."),
+mk(D.GOV,"single","A Configuration Manager needs to restrict the number of classes shown in a CI reference field on the Incident form. How is this accomplished?",
+  ["Using the Principal Class checkbox on CI Class Manager's Basic Info tab","Using a Principal Class attribute directly on the CI record","Using a system property to hardcode allowed classes"],0,
+  "This is the same Principal Class mechanism, configured on the Basic Info tab of the relevant class in CI Class Manager."),
+mk(D.GOV,"single","A CMDB Administrator sets up default asset-group task assignment in Data Manager, with the assignment type set to \"User Group Field.\" Which two default group options are actually available?",
+  ["Approval Group and Owned by Group","Managed by Group and Support Group","CMDB Group and Change Group"],1,
+  "The two natural candidates for group-based task assignment are Managed by Group and Support Group — the standard fields that already carry group ownership on most CI classes."),
+mk(D.GOV,"single","A team enables the CSDM life cycle sync toggle to align with CSDM best practices. What is the correct next step?",
+  ["Immediately activate the CSDM Life Cycle field mappings","Resolve any incomplete field mappings identified in the resulting Discrepancy Report","Fix incorrect Life Cycle Stage values to match legacy values directly"],1,
+  "Enabling the sync toggle triggers a Discrepancy Report comparing legacy values to new life-cycle fields. The next real step is resolving what that report surfaces — not re-activating something already active."),
+mk(D.GOV,"single","A CMDB team wants to know which module generates tasks routed to CMDB class owners under the 'My Work' tab in CMDB Workspace.",
+  ["CMDB Health Dashboard","De-duplication templates","CMDB Data Manager"],2,
+  "Data Manager's Retire/Archive/Delete/Attestation/Certification policies all generate governance tasks routed to owners, which surface under My Work."),
+mk(D.GOV,"single","Which policy type creates a task that lets the assigned individual actually go in and update a field value on the CI record?",
+  ["Compliance","Audit","Certification","Attestation"],2,
+  "Certification policies allow field-level correction. Attestation is a yes/no existence confirmation with no field editing involved."),
+mk(D.GOV,"single","A Configuration Manager sets a group-ownership default at the class level via CI Class Manager (\"Enterprise IT Services\"), while a Technical Service Offering for the same class sets Managed by Group to \"Windows Support.\" What is the resulting value on the member CIs?",
+  ["Enterprise IT Services","Windows Support","The values conflict and remain blank"],1,
+  "A Technical Service Offering's group value overrides the more generic class-level default set in CI Class Manager — more specific wins over more general."),
+mk(D.GOV,"single","What is the recommended action to remove Windows servers from the CMDB that have not been updated by any source in the past six months?",
+  ["A retire policy followed by an archive or delete policy","A single business rule that deletes stale records immediately","A scheduled job with a hardcoded delete script"],0,
+  "The lifecycle governance chain is always Retire first, then Archive or Delete — never a direct jump to deletion without first passing through the retirement gate."),
+mk(D.GOV,"single","What benefit does a well-governed CMDB provide specifically to an audit or attestation cycle?",
+  ["It eliminates the need for any human review of CI data","It provides a structured, repeatable mechanism (policies and tasks) for confirming CI existence and accuracy","It automatically resolves any discrepancies found during the audit"],1,
+  "Governance provides the structured mechanism — policies generating tasks for a human to confirm or correct — not full automation that removes human judgment."),
+mk(D.GOV,"single","Which of these correctly distinguishes a Data Manager Retire policy from an Archive policy?",
+  ["Retire marks a CI as no longer active; Archive moves already-retired data out of the active CMDB for retention","Retire deletes data permanently; Archive marks a CI as inactive","They are functionally identical, just named differently"],0,
+  "Retire is the first lifecycle gate (marking inactive use); Archive is a subsequent action moving already-retired data out of the active dataset while preserving it for compliance."),
+mk(D.GOV,"single","Which is the correct sequence of Data Manager lifecycle actions, from earliest to latest?",
+  ["Delete, Archive, Retire","Retire, Archive or Delete","Archive, Retire, Delete"],1,
+  "A CI must be Retired first; only then can it be Archived (kept for compliance) or Deleted (permanently removed) — never in a different order."),
+mk(D.GOV,"single","A Correctness scorecard shows the Duplicate metric evaluated against the full 60,000-record population of a class, while the Stale metric is evaluated against only 40,000. What is the most likely explanation?",
+  ["A Health Inclusion Rule scoped specifically to the Stale metric for this class","The Duplicate metric is broken and under-reporting","Stale metrics are always calculated on a random sample"],0,
+  "Per-metric Health Inclusion Rules can narrow the evaluated population differently for each individual metric on the same class."),
+mk(D.GOV,"single","What is the risk of relying on a default value (rather than a mandatory field) to fix a governance gap like missing service owners?",
+  ["There is no risk, a default value fully resolves the gap","The field appears populated but the underlying data is still meaningless, defeating the governance purpose","Default values are more secure than mandatory fields"],1,
+  "A default value satisfies \"not empty\" with a placeholder that carries no real information — mandatory-field enforcement at the point of creation is the actual fix."),
+mk(D.GOV,"single","Which of these best explains why Attestation and Certification are considered separate governance mechanisms rather than one combined policy type?",
+  ["They answer fundamentally different questions: existence versus accuracy","They are actually the same mechanism under two different names","Certification is only used for financial data"],0,
+  "Existence and accuracy are distinct questions requiring distinct verification workflows — this is why ServiceNow models them as separate policy types."),
+mk(D.GOV,"single","A CMDB Administrator wants to prevent a class of ephemeral cloud CIs from cluttering the active CMDB long after they are decommissioned. Which policy combination fits best?",
+  ["Attestation only","Retire, then Delete (skipping Archive since there is no long-term compliance need)","Certification only"],1,
+  "Short-lived, ephemeral CIs typically carry no long-term compliance value, so Delete (not Archive) is the appropriate action once retired."),
+mk(D.GOV,"single","A governance team wants a report showing exactly which CI classes are missing recommended (not required) fields. Which scorecard and metric?",
+  ["Correctness scorecard, Duplicate metric","Completeness scorecard, Recommended Fields metric","Compliance scorecard, Audit metric"],1,
+  "Recommended Fields is one of Completeness's two sub-metrics (alongside Required Fields) — a presence check, not an accuracy or hygiene check."),
+mk(D.GOV,"single","How does a CMDB Process Owner's scope differ from a Configuration Manager's scope?",
+  ["Process Owner owns policy/governance rules across the entire CMDB; Configuration Manager manages specific CI tables day-to-day","They have identical scopes and responsibilities","Configuration Manager outranks the Process Owner"],0,
+  "Process Owner sits above the day-to-day data management layer, owning the rules that govern the whole system; Configuration Manager operates within those rules on specific tables."),
+mk(D.GOV,"single","A CMDB Administrator wants to know which scorecard would be most affected by a large batch of newly-imported CIs that have not yet been reviewed for duplicates. Which scorecard?",
+  ["Correctness","Completeness","Compliance"],0,
+  "Freshly-imported, unreviewed CIs are exactly the population most likely to introduce duplicates, which is a Correctness-scorecard concern."),
+mk(D.GOV,"single","What is the primary risk of allowing an Archive policy to run against CIs that have not yet been retired?",
+  ["There is no risk, Archive policies can run on any CI regardless of state","Archiving active, non-retired data risks losing operationally relevant information prematurely","Archive policies automatically retire CIs first, so this is never a real risk"],1,
+  "This is precisely why the platform gates Archive/Delete behind a retirement requirement — to prevent operationally relevant, still-active data from being prematurely archived."),
+mk(D.GOV,"single","A CMDB Administrator is deciding between an Attestation policy and a Certification policy for verifying that laptops assigned to remote employees are still in their possession. Which fits best?",
+  ["Certification, since it is about field accuracy","Attestation, since it is fundamentally an existence/possession check","Either works identically for this scenario"],1,
+  "\"Still in their possession\" is an existence/custody check, matching Attestation's purpose, not a field-value accuracy check like Certification."),
+mk(D.GOV,"single","Which of these best explains why Data Manager policies generate tasks rather than making changes automatically and silently?",
+  ["Automatic silent changes are technically impossible in ServiceNow","Governance actions like retiring, archiving, or certifying data typically require human judgment or confirmation before being finalized","Tasks are only used for reporting purposes and have no functional role"],1,
+  "Generating a task (rather than a silent automated change) builds in a human checkpoint for governance actions that carry real consequences if done incorrectly."),
+];
+
+/* ---------------- INSIGHT POOL (need 45) ---------------- */
+const INS_POOL = [
+mk(D.INS,"single","What is the core purpose of CMDB 360 / Multisource CMDB?",
+  ["To ingest data from multiple third-party sources into the CMDB","To identify and compare CI attributes as reported by multiple sources, side by side","To automatically populate the CMDB with discovered data"],1,
+  "CMDB 360 is an observation/comparison layer showing what every source reported, including losing sources, so conflicts can be spotted. It sits downstream of ingestion."),
+mk(D.INS,"single","Where in CMDB Workspace can a Multisource CMDB Saved Query actually be created and viewed?",
+  ["The Coverage window on the CMDB 360 tab","The Saved queries window on the CMDB 360 tab","CMDB Query Builder"],1,
+  "Coverage shows source-to-class overlap. Saved queries is the specific window for building and storing reusable Multisource queries."),
+mk(D.INS,"single","Which system property is the master switch that must actually be enabled to turn on CMDB 360 functionality?",
+  ["glide.identification_engine.multisource_enabled","glide.identification_engine.multisource_cmdb_ci_enabled","glide.identification_engine.multisource_non_cmdb_ci_enabled"],0,
+  "multisource_enabled is the master switch (default false). The CMDB-class sub-toggle defaults to true already, once the master switch is on."),
+mk(D.INS,"single","Where can an administrator perform a Natural Language Query (NLQ) against the CMDB?",
+  ["CMDB Health Dashboard","CI Class Manager","CMDB Workspace"],2,
+  "NLQ is built into CMDB Workspace, letting users type plain-English questions instead of formal Query Builder syntax."),
+mk(D.INS,"single","A Service Desk Manager wants to find all currently active incidents tied to a specific CI while viewing the Unified Map. Which panel provides this?",
+  ["Overview panel","Related items panel","Attributes panel"],1,
+  "Overview shows general summary info. Related items is specifically where linked Incidents, Problems, and Changes for that CI surface."),
+mk(D.INS,"single","What is the correct build sequence when constructing a query in CMDB Query Builder?",
+  ["Add classes, configure relationship, apply filters, run","Add classes, apply filters, configure relationship, run","Add classes, add display columns, configure relationship, run"],0,
+  "The logical order is: place classes on the canvas, wire the relationship between them, then narrow with filters, then execute."),
+mk(D.INS,"single","What are the three genuine, valid methods for relating CIs into a CMDB Group?",
+  ["Tag-based, Scripted queries, Manual","Manual relation, Encoded queries, Saved queries","AI-based matching, Encoded queries, Scripted queries"],1,
+  "Exactly three relation methods exist: Manual, Encoded queries (single-class), and Saved queries (Query Builder-created, can span classes)."),
+mk(D.INS,"multi","A service owner uses the Unified Map, and wants to filter out irrelevant nodes. Which two options are genuinely available from its filter panel?",
+  ["Discovery source","Managed by group","CI type","Business criticality"],[1,3],
+  "The filter panel offers Managed by group and Business criticality specifically, letting a service owner narrow by ownership and criticality tier."),
+mk(D.INS,"single","A large percentage of Hardware CIs are missing serial numbers, raising concern about undetected duplicates. Which structured ServiceNow guidance directly helps resolve this?",
+  ["CSDM Data Foundations Dashboard Playbooks","CMDB Health Dashboard Playbooks"],1,
+  "Missing serial numbers and duplicate risk are data-quality problems, squarely Health Dashboard territory rather than the framework-alignment Data Foundations Dashboard."),
+mk(D.INS,"multi","Comparing the Unified Map to base Service Mapping, which two capabilities are genuinely ADDITIONAL to what Service Mapping already provides?",
+  ["Visibility into an application and the host it runs on","The number of relationship levels displayed can be modified","Map nodes can be filtered based on user preferences","The map can be zoomed in and out"],[1,2],
+  "App-to-host visibility is a base Service Mapping capability already. The Unified Map's genuinely additional refinements are adjustable level depth and per-user node filtering."),
+mk(D.INS,"single","Multiple Application Servers each host one or more Applications, and an Application can also run across multiple servers. What describes the relationship between the two tables?",
+  ["One-to-many","Many-to-one","Many-to-many"],2,
+  "Since servers can host multiple apps and apps can span multiple servers, the relationship is many-to-many, not a simpler directional cardinality."),
+mk(D.INS,"multi","Which two of these are genuine advantages a well-maintained CMDB provides to Event Management?",
+  ["Binding of an incoming alert to the specific CI it came from","Correlation of alerts directly to Knowledge Base articles","Mapped services providing visibility into the business impact of an alert"],[0,2],
+  "CMDB value to Event Management is relationship context: binding an alert to the exact CI, and surfacing business impact via the mapped service. KB correlation belongs to a different process pairing."),
+mk(D.INS,"multi","How does a service-aware CMDB, via Service Mapping with accurate support/change-group data, genuinely benefit Change Management? Pick both correct benefits.",
+  ["Provides insight into the potential impact of a proposed change","Guarantees the change will cause zero downtime","Enables auto-population of the assignment/change group to dynamically route the change"],[0,2],
+  "The two textbook benefits are impact analysis and dynamic routing. CMDB informs decisions; it can never guarantee an outcome like zero downtime."),
+mk(D.INS,"single","A CI with accurate, synced support-group data is selected on an INCIDENT form. Which field actually auto-populates?",
+  ["Support Group (a direct field on the Incident form)","Assignment Group","Change Group"],1,
+  "The Incident form has no native Support Group field. That data feeds into the Assignment Group field instead; Change Group belongs to the Change Request form."),
+mk(D.INS,"single","On a CHANGE REQUEST form, which field auto-populates directly from the selected CI's own configured group value?",
+  ["Change Group","Assignment Group","Support Group"],0,
+  "Change Request has its own dedicated Change Group field, populated directly from the CI's configured value — the mirror case of the Incident-form scenario."),
+mk(D.INS,"single","What is the primary difference between CMDB 360's data and the data shown in the main cmdb_ci record for a given CI?",
+  ["CMDB 360 shows only the winning source's value, identical to the main record","CMDB 360 shows values from every reporting source, including ones that did not win reconciliation","CMDB 360 replaces the main record entirely"],1,
+  "The whole point of CMDB 360 is visibility into every source's reported value, even the ones reconciliation did not select as the winner for the main record."),
+mk(D.INS,"single","A CMDB Administrator wants to compare the coverage of two Discovery sources across a given CI class in CMDB Workspace. Which CMDB 360 window shows this?",
+  ["Saved queries window","Coverage window","Attributes window"],1,
+  "The Coverage window is specifically designed to show which sources cover which CI classes/attributes — a heatmap-style overlap view."),
+mk(D.INS,"single","Which panel in the Unified Map would a Configuration Manager check to see a CI's basic summary information, such as name and class?",
+  ["Related items panel","Overview panel","Attributes panel"],1,
+  "Overview is the general summary panel. Related items is reserved for linked task records like Incidents and Problems."),
+mk(D.INS,"single","A team is investigating why a CI reference field on the Incident form shows too many irrelevant class options. Which Insight/Configuration-adjacent mechanism is most directly responsible for narrowing this?",
+  ["Principal Class configuration","CMDB 360 Saved Queries","Unified Map filter panel"],0,
+  "Principal Class governs which classes surface as selectable top-level options in reference fields — the direct fix for an overcrowded dropdown."),
+mk(D.INS,"single","Which of these best describes the relationship between Query Builder and CMDB Groups?",
+  ["Query Builder-created Saved queries can be used as one of the three valid CMDB Group relation methods","Query Builder and CMDB Groups are entirely unrelated features","CMDB Groups can only be created through Query Builder"],0,
+  "Saved queries, one of the three CMDB Group relation methods, are specifically built using Query Builder — a direct connection between the two features."),
+mk(D.INS,"single","A CMDB Administrator wants to see, for a single Application Service, both its dependent CIs and any open Problems against those CIs, in one visual. Which tool fits best?",
+  ["CMDB Health Dashboard","Unified Map","CI Class Manager"],1,
+  "The Unified Map is purpose-built to combine the dependency graph with related task visibility (via the Related items panel) in a single visual."),
+mk(D.INS,"single","What does the phrase \"multisource\" in CMDB 360/Multisource CMDB most precisely refer to?",
+  ["Multiple discovery patterns running in parallel","Multiple data sources reporting on the same CI simultaneously","Multiple CI classes represented on one dashboard"],1,
+  "\"Multisource\" describes the ability to see and compare data as reported independently by multiple sources for the same CI."),
+mk(D.INS,"single","Which of these accurately distinguishes the Overview panel from the Attributes panel in the Unified Map?",
+  ["Overview shows a general summary; Attributes shows the full field-level data for the CI","They are functionally identical, just labeled differently","Attributes only appears for Business Applications"],0,
+  "Overview gives a quick, general summary of the CI; Attributes drills into the actual field-level data — two different levels of detail."),
+mk(D.INS,"single","A CI's Assignment Group on the Incident form is populating incorrectly. Which underlying data source is most likely responsible?",
+  ["The CI's Support Group data and its relationships","The CI's Change Group field directly","The Business Service Offering record"],0,
+  "Assignment Group on Incident derives from the CI's support-group relationship data, so an incorrect value traces back to that underlying data being wrong or missing."),
+mk(D.INS,"single","Which of the following is NOT one of the three valid CMDB Group relation methods?",
+  ["Manual relation","Saved queries","Tag-based relation","Encoded queries"],2,
+  "Tag-based relation is not a real CMDB Group mechanism at all; it is a distractor sometimes confused with Service Mapping's tag-based application service method."),
+mk(D.INS,"single","A team wants to build a Saved Query that spans multiple CI classes for use in a CMDB Group. Which relation method supports this?",
+  ["Encoded queries (single-class only)","Saved queries (Query Builder-created, can span multiple classes)","Manual relation"],1,
+  "Encoded queries are scoped to a single class with a condition. Saved queries, built via Query Builder, can span multiple classes — the right fit here."),
+mk(D.INS,"single","What is the main risk of relying solely on the main cmdb_ci record's value for a field, without ever checking CMDB 360?",
+  ["None, the main record always shows the objectively correct value","You may miss that other sources disagree, since the main record only shows the reconciliation winner","CMDB 360 and the main record always show identical data anyway"],1,
+  "The main record only shows whichever source won reconciliation for that field — CMDB 360 is needed to see if other sources actually disagree."),
+mk(D.INS,"single","A Service Desk Manager needs the fastest way to answer \"show me all servers in Chicago not updated in 30 days,\" without building a formal query. What tool fits?",
+  ["CMDB Query Builder","Natural Language Query (NLQ) in CMDB Workspace","CI Class Manager"],1,
+  "NLQ is designed exactly for this — a plain-English question answered without needing to construct a formal Query Builder query."),
+mk(D.INS,"single","Which of these correctly completes the sentence: \"CMDB's value to Change Management comes from ___ and ___.\"",
+  ["cost tracking; vendor management","impact analysis; dynamic routing","asset depreciation; procurement"],1,
+  "Impact analysis (via Service Mapping) and dynamic routing (via CI relationship data) are the two textbook CMDB-driven benefits to Change Management."),
+mk(D.INS,"single","A CI reference field on the Change form is showing too many low-level subclasses instead of clean top-level categories. What configuration addresses this?",
+  ["Setting the relevant classes as Principal Classes","Rebuilding the CMDB Group","Disabling CMDB 360 for that class"],0,
+  "Principal Class configuration is the direct fix — it governs which classes appear as selectable top-level categories in any CI reference field."),
+mk(D.INS,"single","Which capability lets a viewer of the Unified Map adjust how many relationship hops away from the central CI are displayed?",
+  ["The zoom control","The adjustable relationship-level depth (an Unified Map-specific enhancement)","The Overview panel"],1,
+  "This is one of the genuinely additional Unified Map capabilities beyond base Service Mapping — controlling how many levels of relationships render on screen."),
+mk(D.INS,"single","A Configuration Manager wants a shareable, reusable multi-class query for recurring executive reporting. Which feature combination is correct?",
+  ["Query Builder to design it, saved as a CMDB 360 Saved Query","CI Class Manager to design it, saved in the Attributes tab","Unified Map to design it, saved as an Overview panel"],0,
+  "Query Builder is the design tool; once built, it is stored and reused as a Saved Query accessible from the CMDB 360 tab."),
+mk(D.INS,"single","Why might the Coverage window in CMDB 360 show a source at only 40% coverage for a given CI class?",
+  ["That source successfully identifies and reports on only 40% of CIs in that class","The class only has 40 CIs total","Coverage is a fixed percentage that never changes per source"],0,
+  "Coverage reflects the actual proportion of CIs in a class that a given source successfully reports data on — a real gap-visibility metric."),
+mk(D.INS,"single","Which of the following is the best description of what \"Related items\" surfaces on a CI within the Unified Map?",
+  ["Only other CIs that are physically nearby","Task records like open Incidents, Problems, and Changes linked to that CI","A list of every attribute ever recorded on the CI"],1,
+  "Related items is specifically the task-record view — Incidents, Problems, Changes tied to the selected CI, not a generic proximity or history view."),
+mk(D.INS,"single","A team debates whether Assignment Group or Support Group is the field that should be manually set on new Incidents. Which is correct given a well-integrated CMDB?",
+  ["Support Group, since it is a native Incident field","Assignment Group, since Support Group is not a native Incident field and instead feeds into Assignment Group","Both fields exist and should be set identically"],1,
+  "Support Group data lives on the CI and flows into the Incident's Assignment Group field; Support Group itself is not a field that exists on the Incident form."),
+mk(D.INS,"single","What best explains why a CMDB Group built with an Encoded query might miss CIs that a Saved Query-based group would catch?",
+  ["Encoded queries are limited to a single class, while Saved queries can span multiple classes","Encoded queries are always broken","Saved queries cannot use conditions at all"],0,
+  "Encoded queries operate within one class only. If the intended grouping spans multiple classes, a Saved Query (built in Query Builder) is required instead."),
+mk(D.INS,"single","A dashboard shows conflicting values for a server's memory size across sources. Which feature is purpose-built to investigate this specific discrepancy?",
+  ["CMDB 360 / Multisource CMDB","CI Class Manager","Unified Map"],0,
+  "CMDB 360 exists specifically to surface and compare per-source attribute values, which is exactly the tool needed to investigate a cross-source discrepancy."),
+mk(D.INS,"single","Which of the following is true about the CMDB Query Builder's relationship-configuration step relative to filtering?",
+  ["Relationships must be configured before filters are applied","Filters must always be applied before any relationship is configured","The order between the two never matters"],0,
+  "The correct build order places relationship configuration before filtering — you first define how classes connect, then narrow the results."),
+mk(D.INS,"single","A service owner filters the Unified Map by Business criticality. What is this filter helping them accomplish?",
+  ["Focusing attention on the CIs that matter most operationally, hiding lower-criticality noise","Removing all non-discovered CIs from view","Changing the underlying criticality value on the CIs"],0,
+  "Business criticality filtering is a visibility tool, letting the viewer focus on what matters most without altering any underlying data."),
+mk(D.INS,"single","Which statement correctly reflects how Assignment Group and Change Group relate to each other on ITSM forms?",
+  ["They are the same field, just renamed per form","They are distinct fields on different forms (Incident vs. Change Request), each populated from different CI-relationship data","Change Group always overrides Assignment Group"],1,
+  "These are genuinely separate fields living on separate forms, each independently populated from the relevant CI relationship data for that process."),
+mk(D.INS,"single","A Configuration Manager wants day-to-day operational visibility (de-dup remediation, NLQ, CI Explorer) in one unified interface. Which tool is this?",
+  ["CMDB Data Manager","CMDB Workspace","CI Class Manager"],1,
+  "CMDB Workspace is the operational hub combining CI Explorer, Health scorecards, de-dup remediation, NLQ, and the Unified Map in one place."),
+mk(D.INS,"single","A team wants to compare how three different Discovery sources each reported the OS version of the same server. Which feature directly supports this comparison?",
+  ["CMDB 360 / Multisource CMDB","CMDB Health Dashboard","CI Class Manager"],0,
+  "This kind of side-by-side, per-source attribute comparison is exactly what CMDB 360 is purpose-built for."),
+mk(D.INS,"single","Which of these is the most accurate description of the Unified Map's relationship to Service Mapping?",
+  ["The Unified Map is a completely separate, unrelated product","The Unified Map builds on Service Mapping's dependency data, adding a refined viewing and filtering layer on top","Service Mapping is a legacy feature fully replaced by the Unified Map"],1,
+  "The Unified Map is not a replacement; it layers additional viewing and filtering refinements on top of the dependency data Service Mapping already establishes."),
+mk(D.INS,"single","A Configuration Manager wants to know how many CIs in the Server class are actively covered by a given Discovery source, as a percentage. Where do they check?",
+  ["The Saved queries window on the CMDB 360 tab","The Coverage window on the CMDB 360 tab","CI Class Manager's Health tab"],1,
+  "The Coverage window is specifically the percentage-based, source-to-class coverage view within CMDB 360."),
+mk(D.INS,"single","Which of these correctly explains why an incident's Assignment Group might be blank even though the selected CI has a Support Group value?",
+  ["The underlying sync/relationship data that feeds Assignment Group from the CI may be missing or misconfigured","Assignment Group only ever populates manually, never automatically","Support Group data is never actually used for Incident routing"],0,
+  "If the relationship data that normally feeds Assignment Group from the CI's support-group information is missing or broken, the auto-population simply will not occur, even if Support Group looks correct on the CI itself."),
+];
+
+/* ---------------- CONFIGURATION POOL (need 39) ---------------- */
+const CFG_POOL = [
+mk(D.CFG,"single","Where in CI Class Manager does an administrator designate a class as a Principal Class?",
+  ["Health -> Attributes","Class Info -> Basic Info","Class Info -> Attributes"],1,
+  "Principal Class is a structural, class-level property configured under Class Info -> Basic Info — not under any Attributes tab."),
+mk(D.CFG,"single","Where are required and recommended field rules configured, the ones that generate a task when a field is missing on a class?",
+  ["Class Info -> Basic Info","Health -> Health Preferences"],1,
+  "Health Preferences is specifically where field-level required/recommended rules and their task-generation behavior live."),
+mk(D.CFG,"single","What is the correct naming prefix for a brand-new custom CMDB class, to avoid a collision with a future out-of-box table of the same name?",
+  ["cmdb_ci_<name>","u_cmdb_ci_<name>","ci_cmdb_<name>"],1,
+  "The bare cmdb_ci_ prefix is reserved for OOB tables. u_cmdb_ci_<name> follows platform-wide custom-table convention while extending the CMDB hierarchy safely."),
+mk(D.CFG,"single","Which Attributes tab in CI Class Manager shows fields created specifically at this class level, excluding anything inherited?",
+  ["All","Derived","Added","Child"],2,
+  "\"Added\" filters to attributes created at this exact class level. \"Derived\" shows inherited attributes; \"Child\" is unrelated, concerning subclass navigation instead."),
+mk(D.CFG,"single","A Server CI is reclassified into the more specific Windows Server class by the IRE. What is this operation called?",
+  ["Class Switch","Class Downgrade","Class Upgrade"],2,
+  "Moving to a more specific child table is a Class Upgrade. Downgrade is the reverse; Switch applies to sibling classes at the same level."),
+mk(D.CFG,"single","A Windows Server CI is reclassified as a Linux Server CI. What operation does this represent?",
+  ["Class Upgrade","Class Downgrade","Class Switch"],2,
+  "Moving between sibling classes at the same hierarchical level, rather than up or down a parent-child chain, is a Class Switch."),
+mk(D.CFG,"single","A Windows Server CI is reclassified back into the more generic Server class. What operation does this represent?",
+  ["Class Upgrade","Class Downgrade","Class Switch"],1,
+  "Moving to a less specific, more generic parent table is a Class Downgrade — the exact reverse of an Upgrade."),
+mk(D.CFG,"single","What is the correctly-ordered relationship type between an Application record and the Server it runs on?",
+  ["Application > Uses::Used by > Server","Application > Runs on::Runs > Server","Application > Runs::Runs on > Server"],1,
+  "The documented and instance-verified relationship type reads Runs on::Runs — Runs on from the Application's side, Runs from the Server's side (inverse)."),
+mk(D.CFG,"single","What are the minimal roles required to add a brand-new custom CI class to the CMDB?",
+  ["itil_admin + personalize_form","sn_cmdb_admin + personalize_dictionary","cmdb_inst_admin + personalize_form"],1,
+  "Class creation requires sn_cmdb_admin for the table/class structure plus personalize_dictionary for defining the new fields."),
+mk(D.CFG,"single","A team needs to onboard a brand-new equipment type never modeled before, minimizing technical debt. What is the best-practice combination of actions?",
+  ["Repurpose an existing base CI class and rename its attributes","Extend an existing CI class table with proper inheritance, checking the CMDB CI Class Models store app first","Extend an existing Asset class table to hold the new CI attributes"],1,
+  "Proper inheritance keeps the class within the correct data model; checking the store app first avoids reinventing an existing solution. Extending an Asset table conflates two data models and creates debt."),
+mk(D.CFG,"single","An identification rule for the Hardware class uses serial_number and name as configured identifiers, but never IP address. A newly imported CI's name matches an existing record; a second imported CI's IP matches an existing record's IP. What happens to each?",
+  ["Both get inserted as brand-new CIs","The name-match record is updated; the IP-match record is inserted as new","Both get updated against their matching CIs"],1,
+  "The IRE only uses configured identifier attributes to decide a match. Name is configured, so it updates. IP is not configured, so despite the coincidental match, it is treated as new."),
+mk(D.CFG,"single","Which tool serves as the central location to document a CI class's attributes, identification rules, and suggested relationships all in one place?",
+  ["CMDB Data Manager","CI Class Manager","CMDB Workspace"],1,
+  "CI Class Manager consolidates everything about how a class is structured, making it the natural single source for this kind of documentation."),
+mk(D.CFG,"single","When integrating data via Import Sets and Transform Maps, which script type must be used to guarantee the incoming data is processed through the IRE?",
+  ["onStart","onBefore","onComplete"],1,
+  "The CMDBTransformUtil API call routing transform-map data through the IRE is designed to be invoked from an onBefore script, before the final record save."),
+mk(D.CFG,"single","A CMDB Administrator changes the query used by a Service Graph Connector. What is a direct impact of this change?",
+  ["Any scheduled jobs tied to that data source will need to be reviewed/reconfigured","The connector is permanently disabled and must be reinstalled","No impact at all, the query is purely cosmetic"],0,
+  "Changing the underlying query changes what data actually gets pulled, so scheduled jobs built around the old scope may need reconfiguring."),
+mk(D.CFG,"single","A Service Graph Connector was installed with a customized script transform. What happens on a subsequent upgrade if the default script transform definition changes upstream?",
+  ["The upgrade refuses to start entirely","A skipped change is created and no change is made to the customized script transform","The customization is silently overwritten"],1,
+  "This matches typical ServiceNow behavior for customized OOB artifacts — the incoming OOB update is skipped and logged, preserving the customization."),
+mk(D.CFG,"single","A CMDB Administrator wants to view attributes inherited from a parent class, rather than ones added directly at this class level. Which Attributes tab shows this?",
+  ["Added","Derived","Child"],1,
+  "\"Derived\" specifically filters to attributes inherited from a parent class — the counterpart to \"Added,\" which shows this class's own fields."),
+mk(D.CFG,"single","Which of these correctly explains why table inheritance matters when creating a custom CI class?",
+  ["It has no real effect on functionality, it is purely cosmetic","It ensures the new class automatically inherits identification rules, attributes, and relationships already defined upstream","It only matters for reporting purposes"],1,
+  "Proper inheritance means a new class does not have to redefine identification rules, attributes, or relationships from scratch — it inherits what the parent already established."),
+mk(D.CFG,"single","A CI Class Manager administrator wants to prevent duplicate creation of a class that may already exist as a similar type. What is the recommended first step?",
+  ["Immediately create the new class from scratch","Check the CMDB CI Class Models store app for an existing suitable class","Extend the Asset Hardware table instead"],1,
+  "The CMDB CI Class Models store app should always be checked first, since ServiceNow may already provide a pre-built class fitting the need."),
+mk(D.CFG,"single","Which describes the correct relationship between a Class Upgrade and a Class Downgrade?",
+  ["They are unrelated, independent operations with no connection","A Downgrade is the exact reverse of an Upgrade, moving back to a less specific parent table","A Downgrade only applies to Network Adapter CIs"],1,
+  "Upgrade moves to a more specific child table; Downgrade moves back to the less specific parent — direct opposites of each other."),
+mk(D.CFG,"single","A Configuration Manager needs to verify which attributes on a Windows Server class came from the base Hardware class versus the Server class versus Windows Server itself. Which view helps most directly?",
+  ["The Derived tab, cross-referenced against the class hierarchy","The Coverage window in CMDB 360","The Unified Map Overview panel"],0,
+  "The Derived tab surfaces inherited attributes, and combined with understanding the class hierarchy, clarifies exactly where each attribute originates."),
+mk(D.CFG,"single","What role does personalize_dictionary play when creating a new custom CI class?",
+  ["It allows defining new fields/attributes on the new table","It grants access to the CMDB Health Dashboard","It is unrelated to class creation"],0,
+  "personalize_dictionary is specifically the role needed to define new fields on a table, complementing sn_cmdb_admin's table-level creation rights."),
+mk(D.CFG,"single","Which of these is the correct interpretation of an identification rule with two identifier entries: serial_number (priority 100) and name (priority 300)?",
+  ["Name is always checked first since it has a higher number","Serial_number is checked first since a lower priority number means it is evaluated with higher precedence","Only one of the two entries can ever be active"],1,
+  "As with reconciliation, lower numbers mean higher precedence in ServiceNow's priority conventions — serial_number, at 100, is evaluated before name, at 300."),
+mk(D.CFG,"single","Why does the IRE not consider IP address a valid match for a CI if IP is not part of the class's configured identification rule?",
+  ["Because IP addresses are considered unreliable data universally","Because the IRE only evaluates attributes explicitly configured as part of the identification rule for that class","Because IP address matches are always treated as errors"],1,
+  "The IRE's matching logic is scoped entirely to whatever attributes are configured in the rule — a coincidental match on an unconfigured attribute simply is not considered."),
+mk(D.CFG,"single","A CMDB Administrator wants a query result to include a non-CMDB table such as Incident. In CMDB Query Builder, how is this table added to the canvas?",
+  ["It cannot be added; only CMDB classes are supported","From the Non-CMDB Tables list","By first converting Incident into a CI class"],1,
+  "Query Builder specifically supports adding non-CMDB tables like Incident from a dedicated Non-CMDB Tables list, alongside standard CI classes."),
+mk(D.CFG,"single","A CI Class Manager admin marks a class as \"Extensible.\" What does this flag actually control?",
+  ["Whether the class can have child/subclasses created that extend it","Whether the class appears in reference fields","Whether the class can be certified"],0,
+  "Extensible governs whether other classes are permitted to extend (inherit from) this class in the hierarchy — a structural, not a visibility, setting."),
+mk(D.CFG,"single","Which of these scenarios is a textbook example of a Class Switch, not an Upgrade or Downgrade?",
+  ["Server reclassified to Windows Server","Windows Server reclassified to Linux Server","Windows Server reclassified back to Server"],1,
+  "Moving between two sibling classes at the same hierarchical level (Windows Server and Linux Server are both children of Server) is a Class Switch."),
+mk(D.CFG,"single","What is the correct relationship type direction convention used across ServiceNow's cmdb_rel_ci table?",
+  ["Descriptor::Inverse Descriptor, read from the first CI's perspective","Inverse Descriptor::Descriptor, read from the second CI's perspective","There is no consistent convention"],0,
+  "ServiceNow relationship types follow Descriptor::Inverse Descriptor, with the first descriptor always read from the perspective of the first (source) CI in the relationship."),
+mk(D.CFG,"single","A team wants to add a completely new attribute to the Windows Server class without affecting the parent Server class. Where does this attribute show up in Attributes tabs?",
+  ["Under \"Added\" for Windows Server, and under \"Derived\" for any of its own child classes","Under \"Derived\" for Windows Server itself","It would not appear in any tab"],0,
+  "A field added specifically at the Windows Server level shows as \"Added\" there, and would show as \"Derived\" for any subclass that inherits from Windows Server."),
+mk(D.CFG,"single","Which best explains why extending an Asset class table for new CI-specific attributes is considered poor practice?",
+  ["It is technically impossible to do","It conflates two separate data models (Asset Management and CMDB), creating cross-model dependencies that complicate upgrades","Asset tables cannot hold any custom fields at all"],1,
+  "Asset Management and CMDB are related but distinct data models. Mixing CI-specific attributes into an Asset table creates messy dependencies that break clean upgrades."),
+mk(D.CFG,"single","A CMDB Administrator needs a new field visible only on records of a specific subclass, not the whole class hierarchy. What CI Class Manager concept applies?",
+  ["Adding the field specifically at that subclass level (it will show as \"Added\" there, not on the parent)","Adding the field at the top-level parent class","This is not possible in ServiceNow"],0,
+  "Fields added at a specific subclass level remain scoped to that subclass and anything beneath it — they do not propagate upward to the parent."),
+mk(D.CFG,"single","What is the risk of skipping table inheritance when creating a brand-new custom CI class?",
+  ["No risk, inheritance is purely optional with no consequences","The class becomes structurally orphaned from CMDB best practice, breaking rollups and health rules that depend on the class hierarchy","Skipping inheritance actually improves performance"],1,
+  "Skipping inheritance may work in the short term but orphans the class from the structure that health rules, rollups, and reporting depend on — a long-term technical debt generator."),
+mk(D.CFG,"single","Which of the following would most directly reduce risk when an admin changes a Service Graph Connector's underlying query?",
+  ["Reviewing and reconfiguring dependent scheduled jobs proactively","Ignoring scheduled jobs since they will auto-adjust","Deleting the connector and reinstalling it every time"],0,
+  "Since a query change alters what data flows through the connector, proactively reviewing dependent scheduled jobs is the responsible mitigation."),
+mk(D.CFG,"single","A CMDB Administrator wants to see exactly which identification-rule entries exist for the Network Adapter class, ranked by precedence. Where do they look?",
+  ["CI Class Manager's identification rules configuration for that class","The CMDB Health Dashboard","The Unified Map filter panel"],0,
+  "Identification rules, including their priority ranking, are configured and viewable directly in CI Class Manager for the relevant class."),
+mk(D.CFG,"single","How does the platform typically handle an OOB update to a component that an administrator has customized, during an upgrade?",
+  ["It always overwrites the customization silently","It typically creates a skipped record/change, preserving the customization and logging the conflict","It always blocks the entire upgrade"],1,
+  "ServiceNow's standard behavior for customized OOB artifacts during upgrade is to skip the incoming change and log it, rather than silently overwriting or blocking everything."),
+mk(D.CFG,"single","Which is a legitimate reason to use table inheritance rather than creating a completely standalone new table for a new CI type?",
+  ["Standalone tables are always faster","Inheritance connects the new class to existing identification rules, attributes, and relationships already defined upstream","Standalone tables are required by ServiceNow policy"],1,
+  "The core benefit of inheritance is not having to redefine what a parent class has already established — identification rules, attributes, relationships all flow down."),
+mk(D.CFG,"single","A CMDB Administrator sees an option labeled \"Independent\" on a CI class. What does this most likely control, in contrast to \"Extensible\"?",
+  ["Whether the class exists outside the normal cmdb_ci hierarchy, distinct from whether it can be extended by children","It is a synonym for Extensible with no real difference","It controls Health Dashboard scoring only"],0,
+  "Independent and Extensible are distinct structural properties — one relates to hierarchy position, the other to whether children can extend the class — and should not be conflated."),
+mk(D.CFG,"single","What is the most likely outcome if an administrator configures an identification rule using an attribute the business considers important but that is rarely populated by any data source?",
+  ["Most incoming records will fail to match on that attribute and may be inserted as new, unmatched records","The IRE will automatically populate the missing attribute","ServiceNow will reject the identification rule entirely"],0,
+  "If a configured identifier attribute is rarely populated, matching against it will rarely succeed, leading to more unintended new-record inserts rather than correct updates."),
+mk(D.CFG,"single","Which best describes how Principal Class and table inheritance work together in a well-designed CMDB?",
+  ["They are unrelated; Principal Class has nothing to do with class structure","Table inheritance builds the correct class hierarchy, while Principal Class then curates which of those classes surface in reference fields","Principal Class replaces the need for table inheritance"],1,
+  "Inheritance establishes the structural hierarchy; Principal Class is a separate, complementary curation layer determining what actually appears as a selectable option to end users."),
+mk(D.CFG,"single","A CMDB Administrator needs to confirm whether a given field on the Windows Server class was inherited from Server or added directly on Windows Server. Which two tabs together answer this?",
+  ["Derived and Added","Health and Basic Info","Coverage and Saved queries"],0,
+  "Checking both the Derived tab (inherited fields) and the Added tab (fields native to this class) together tells you definitively where a given field originates."),
+];
+
+/* ---------------- INGEST POOL (need 39) ---------------- */
+const ING_POOL = [
+mk(D.ING,"single","Which ingest tool is best described as an \"automated, agentless solution that runs discovery patterns\"?",
+  ["Agent Client Collector","ServiceNow Discovery","Service Graph Connector"],1,
+  "Discovery is ServiceNow's own agentless, pattern-based scanning mechanism, with no software installed on the target device."),
+mk(D.ING,"single","Which ingest tool is described as an \"automated, agent-based solution that runs discovery patterns\"?",
+  ["Agent Client Collector","ServiceNow Discovery","Import Sets"],0,
+  "Agent Client Collector (ACC) uses the same pattern-based approach as Discovery, but via an installed agent, useful where agentless probing is restricted."),
+mk(D.ING,"multi","What are the two real, common use cases for Agent Client Collector (ACC), as opposed to standard agentless Discovery?",
+  ["Servers sitting in the data center on an open, reachable network","Devices in secure/locked-down environments where network scanning is restricted","Devices that only intermittently connect to the network, like laptops"],[1,2],
+  "Always-on, reachable data center servers fit Discovery's ideal profile. ACC earns its keep specifically where agentless probing fails: locked-down networks and intermittently-connected devices."),
+mk(D.ING,"single","Need to ingest data from Microsoft SCCM with the fastest possible time to value. Which method?",
+  ["A custom IntegrationHub ETL flow built from scratch","A pre-built, vendor-supported Service Graph Connector","Import Sets with custom transform maps"],1,
+  "A pre-built Service Graph Connector requires no custom mapping — configure and run, the definition of fastest time to value when a ready-made connector exists."),
+mk(D.ING,"single","Which architecture description matches \"Import Sets and Transform Maps\" as an ingestion method?",
+  ["A pre-built, vendor-maintained integration from the ServiceNow Store","An organization-built solution using custom transform maps to bring in third-party data","A third-party integration built and supported by another vendor"],1,
+  "Import Sets are the \"build the mapping logic yourself\" path, used when no existing connector covers the data source."),
+mk(D.ING,"multi","Which two of these are genuine characteristics of ServiceNow IntegrationHub ETL?",
+  ["It integrates third-party data into CMDB or non-CMDB tables","It performs agentless discovery data collection directly against endpoints","It routes ingested data through the IRE by design"],[0,2],
+  "ETL pulls data from third-party sources into ServiceNow tables, natively routed through the IRE. \"Discovery data collection\" describes ServiceNow Discovery specifically, a separate mechanism."),
+mk(D.ING,"single","Need to guarantee that the IRE is never bypassed during ingestion, without depending on someone remembering to add a specific script. Which is the safer, built-in-by-default method?",
+  ["Import Sets with a manually-added onBefore script","IntegrationHub ETL"],1,
+  "Import Sets can route through the IRE, but only via a manually-added onBefore script, a step that can be forgotten. ETL is natively built to always route through the IRE."),
+mk(D.ING,"single","A Configuration Manager is comparing options to ingest custom CI data while guaranteeing the IRE is never silently bypassed. Which import method is recommended?",
+  ["Table API (REST or SOAP), called directly from an external script","IntegrationHub ETL"],1,
+  "IntegrationHub ETL is purpose-built to route all incoming data through the IRE by design. Calling the Table API directly bypasses IRE identification unless extra custom logic is added."),
+mk(D.ING,"single","What is the fundamental difference between ServiceNow Discovery and Agent Client Collector (ACC)?",
+  ["Discovery is agent-based, ACC is agentless","Discovery is agentless, ACC is agent-based","They are functionally identical, just different names for the same mechanism"],1,
+  "Discovery scans devices remotely with no software installed on them; ACC installs an agent on the endpoint to collect the same kind of pattern-based data."),
+mk(D.ING,"single","A vendor-built, pre-packaged integration available from the ServiceNow Store, requiring minimal custom configuration, is best classified as which ingest architecture?",
+  ["Import Sets","Service Graph Connector","IntegrationHub ETL built from scratch"],1,
+  "This is the definition of a Service Graph Connector — vendor-maintained, Store-distributed, minimal setup required."),
+mk(D.ING,"single","Which ingest method requires an organization to build and maintain its own transform map logic, typically as a fallback when no existing connector covers the data source?",
+  ["Service Graph Connector","Import Sets and Transform Maps","Agent Client Collector"],1,
+  "Import Sets/Transform Maps is the custom-built fallback path used specifically when no pre-built connector exists for a given source."),
+mk(D.ING,"single","Why might an organization choose Agent Client Collector over standard Discovery for a fleet of remote employee laptops?",
+  ["Laptops are always reachable on a fixed schedule, matching Discovery's ideal profile","Laptops only intermittently connect to the corporate network, which agentless Discovery struggles to reliably scan on schedule","ACC is always faster than Discovery regardless of device type"],1,
+  "Remote laptops are the textbook use case for ACC precisely because they are not reliably online when a scheduled Discovery scan would run."),
+mk(D.ING,"single","A CMDB Administrator needs to bring in third-party data from a source with no existing Service Graph Connector and no ServiceNow Store listing. Which method remains available?",
+  ["ServiceNow Discovery","Import Sets and Transform Maps, or IntegrationHub ETL","Agent Client Collector"],1,
+  "When no pre-built connector exists, the organization-built paths (Import Sets/ETL) are the remaining viable options, since Discovery and ACC are for infrastructure scanning, not arbitrary third-party data."),
+mk(D.ING,"single","What does it mean that IntegrationHub ETL routes data through the IRE \"by design\"?",
+  ["It requires a manually-written script for every single ETL flow to achieve this","The routing happens natively as part of the ETL framework, with no separate script required","It only applies to CMDB tables, never non-CMDB tables"],1,
+  "\"By design\" means the IRE routing is a built-in behavior of the ETL framework itself, unlike Import Sets which requires an explicit onBefore script to achieve the same result."),
+mk(D.ING,"single","Which statement correctly compares the risk profile of Import Sets vs. IntegrationHub ETL for IRE compliance?",
+  ["Both carry identical risk, since both eventually call the same underlying API","Import Sets carries more risk since IRE routing depends on a human correctly adding a script; ETL carries less risk since it is native","ETL is riskier because it cannot be customized at all"],1,
+  "The risk difference is entirely about dependency on human configuration: Import Sets needs a correctly-written onBefore script, while ETL guarantees IRE routing without that dependency."),
+mk(D.ING,"single","A Discovery pattern is unable to reach a set of servers behind a strict firewall segment with no MID Server access. Which alternative ingest tool is best suited?",
+  ["Agent Client Collector, installed locally on those servers","Service Graph Connector","Import Sets"],0,
+  "When network-level agentless scanning cannot reach a segment, ACC's agent-based approach works around that barrier by running locally on the device."),
+mk(D.ING,"single","Which best explains why a Service Graph Connector is generally the fastest ingestion path when one is available for a given vendor?",
+  ["It requires the least amount of custom configuration since it is vendor-built and vendor-maintained","It is the only method that supports IRE routing","It works even without any ServiceNow license"],0,
+  "Speed-to-value comes from not having to build any mapping logic yourself — the vendor has already done that work, and ServiceNow distributes it ready-to-configure."),
+mk(D.ING,"single","A CMDB Administrator wants a real-time, agent-based data collection method for devices where installing software is acceptable but network-based scanning is not. What best fits?",
+  ["ServiceNow Discovery","Agent Client Collector","IntegrationHub ETL"],1,
+  "This scenario, an installed agent acceptable but no network probing allowed, is squarely ACC's use case, distinguishing it from Discovery's network-based approach."),
+mk(D.ING,"single","What differentiates Import Sets from a Service Graph Connector in terms of long-term maintenance burden?",
+  ["Import Sets require the implementing organization to maintain the mapping logic themselves; a Service Graph Connector's mapping is maintained by the vendor","Both require identical ongoing maintenance","Service Graph Connectors require more custom scripting over time"],0,
+  "Since Import Sets mapping logic is custom-built in-house, the maintenance burden falls on the implementing team, unlike a vendor-maintained Service Graph Connector."),
+mk(D.ING,"single","Which of these best reflects the correct order of preference when selecting an ingest method for a new third-party data source?",
+  ["Check for an existing Service Graph Connector first, then consider IntegrationHub ETL, then fall back to custom Import Sets only if nothing else fits","Always build Import Sets from scratch regardless of what else is available","Always use Agent Client Collector regardless of the source type"],0,
+  "The general best practice is to prefer the least custom, most maintained option first, only falling back to fully custom Import Sets work when nothing pre-built exists."),
+mk(D.ING,"single","A security team requires that no ingestion mechanism ever silently bypass identification and reconciliation, across every future integration. Which policy is most aligned with this requirement?",
+  ["Standardizing on IntegrationHub ETL wherever a custom integration is needed, rather than raw Import Sets with manual scripting","Standardizing on the Table API called directly from external scripts","There is no way to guarantee this across the platform"],0,
+  "Standardizing on ETL removes the human-dependency risk that comes with manually-scripted Import Sets onBefore logic, directly satisfying a security team's guarantee requirement."),
+mk(D.ING,"single","Why is Discovery generally unsuitable for bringing in data from a third-party SaaS billing platform?",
+  ["Discovery is designed for network-reachable infrastructure and patterns, not for pulling structured data from external SaaS APIs","Discovery cannot run on any schedule","Discovery only works for Windows servers"],0,
+  "Discovery's whole model is scanning reachable infrastructure using patterns. A SaaS billing platform's data is better suited to an API-based ingestion method like ETL, Import Sets, or a Service Graph Connector."),
+mk(D.ING,"single","A newly available Service Graph Connector on the Store claims minimal setup. What underlying architecture most likely supports it?",
+  ["It is built on IntegrationHub ETL under the hood, pre-configured by the vendor","It is a completely separate, unrelated technology stack","It requires no underlying data pipeline at all"],0,
+  "Service Graph Connectors commonly run on IntegrationHub ETL underneath, with the vendor having already done the mapping configuration work for the customer."),
+mk(D.ING,"single","Which best explains why relying purely on manually-triggered Discovery runs, with no scheduling, is a weak long-term ingestion strategy?",
+  ["Manually-triggered runs cannot reliably keep CI data current as infrastructure changes over time","Manual Discovery runs are always more accurate than scheduled ones","Manual runs do not use the IRE at all"],0,
+  "Without scheduling, CI data goes stale as infrastructure changes between manual runs, undermining the CMDB's reliability over time."),
+mk(D.ING,"single","A team is evaluating whether to build a custom Import Set integration or wait for a vendor-published Service Graph Connector still in development. What is the most balanced consideration?",
+  ["Always build the custom integration immediately regardless of timeline","Weigh the near-term ingestion need against the long-term maintenance savings of the vendor-supported path once available","Never use Import Sets under any circumstance"],1,
+  "This is a genuine tradeoff between speed now and lower maintenance later, and should be weighed rather than defaulting reflexively to either extreme."),
+mk(D.ING,"single","Which of the following ingestion methods is least appropriate for a one-time historical data backfill from a legacy spreadsheet?",
+  ["Import Sets with a transform map","ServiceNow Discovery","A Service Graph Connector, if one happens to exist for that exact legacy format"],1,
+  "Discovery is designed to scan live, reachable infrastructure, not to import a static historical dataset from a spreadsheet — Import Sets is the natural fit for that scenario."),
+mk(D.ING,"single","What is a reasonable justification for choosing IntegrationHub ETL over a raw Import Set even when both could technically achieve the same data transformation?",
+  ["ETL provides native, guaranteed IRE routing without extra scripting, reducing risk of a misconfigured integration","Import Sets are always deprecated and unsupported","ETL is free while Import Sets always require a paid license"],0,
+  "The practical justification is risk reduction: ETL's native IRE guarantee removes a class of configuration mistakes that a raw Import Set with manual scripting is exposed to."),
+mk(D.ING,"single","A company wants to bring in inventory data from a niche vendor tool with no existing ServiceNow Store listing. Which ingestion path remains available regardless?",
+  ["Import Sets and Transform Maps, built custom for that data format","Waiting indefinitely for a Service Graph Connector to be released","Agent Client Collector, since it works for any data source"],0,
+  "Import Sets/Transform Maps is the universal fallback — it always remains an option even when no pre-built connector or agent-based pattern applies to the source."),
+mk(D.ING,"single","Which of these best describes why Discovery and Agent Client Collector are grouped together as \"pattern-based\" tools, despite one being agentless and the other agent-based?",
+  ["They share the same underlying pattern-execution logic, differing only in where that logic runs (network-side vs. on the device)","They are entirely different technologies with no shared logic","Patterns only apply to Discovery, not to ACC at all"],0,
+  "Both tools execute the same style of pattern-based logic; the real difference is deployment location — Discovery runs it remotely over the network, ACC runs it locally via an installed agent."),
+mk(D.ING,"single","An organization has firewall rules that block all inbound network scanning to a segment of servers, but outbound connections from those servers are allowed. Which ingest tool is best suited?",
+  ["ServiceNow Discovery","Agent Client Collector","Service Graph Connector"],1,
+  "An installed agent (ACC) can initiate outbound connections to report data, working around a firewall rule that blocks only inbound scanning."),
+mk(D.ING,"single","Which statement best reflects the relationship between Service Graph Connectors and the ServiceNow Store?",
+  ["Service Graph Connectors are most commonly distributed through the Store, typically vendor-built and vendor-maintained","Service Graph Connectors are never available on the Store","The Store only distributes Discovery patterns, never connectors"],0,
+  "The vast majority of Service Graph Connectors an organization uses are Store-distributed and vendor-maintained, which is the source of their fast-time-to-value benefit — though an organization can technically build a custom one using the same framework outside the Store."),
+mk(D.ING,"multi","Which two of these accurately describe IntegrationHub ETL's role in an ingestion strategy?",
+  ["It can bring third-party data into non-CMDB tables, not just CMDB tables","It replaces the need for Discovery entirely across every use case","It natively routes ingested data through the IRE"],[0,2],
+  "ETL is flexible enough to target non-CMDB tables and natively guarantees IRE routing — but it does not replace Discovery, which serves a fundamentally different, infrastructure-scanning purpose."),
+mk(D.ING,"single","A CMDB Administrator needs to periodically pull structured data from a partner's REST API into a custom ServiceNow table, with transformation logic they control themselves. Which two ingest tools could both accomplish this, differing mainly in IRE-routing guarantees?",
+  ["Import Sets/Transform Maps and IntegrationHub ETL","ServiceNow Discovery and Agent Client Collector","Only a Service Graph Connector can do this"],0,
+  "Both custom-built paths, Import Sets and ETL, can pull and transform this kind of data — the meaningful difference between them is ETL's native, guaranteed IRE routing versus Import Sets' manual script dependency."),
+mk(D.ING,"single","Why would an organization prefer Discovery patterns over Agent Client Collector for a large, easily-reachable data center, even though ACC could technically also work there?",
+  ["Agentless scanning avoids the overhead of deploying and maintaining software on every single server","ACC is always faster than Discovery in every scenario","Discovery cannot scan data centers at all"],0,
+  "For an easily-reachable environment, agentless Discovery avoids the deployment and maintenance overhead of installing and updating agent software across a large server fleet."),
+mk(D.ING,"single","A newly-built custom Import Set integration is found to be inserting duplicate CIs at a high rate. What is the most likely root cause, given everything covered about IRE routing?",
+  ["The onBefore script that should call the IRE for identification/reconciliation is missing or misconfigured","Import Sets are fundamentally incapable of working with the CMDB","The Discovery schedule is misconfigured"],0,
+  "High duplicate-insertion rates from a custom Import Set integration are a classic symptom of the IRE never actually being invoked — pointing directly at a missing or broken onBefore script."),
+mk(D.ING,"single","Which best explains why a security team might specifically favor Service Graph Connectors and IntegrationHub ETL over ad hoc Table API scripting for new integrations?",
+  ["Both guarantee IRE involvement and vendor/platform-maintained logic, reducing the attack surface and configuration risk of hand-rolled scripts","Table API scripting is always faster to build","Security teams have no reason to prefer one method over another"],0,
+  "Standardizing on IRE-guaranteed, maintained pathways reduces both data-quality risk (duplicate/bypass issues) and the security exposure of custom, ad hoc scripting."),
+mk(D.ING,"single","A team wants to ingest data from an application with an actively maintained, ServiceNow-Store-listed connector, but insists on building their own Import Set integration instead out of habit. What is the main downside of this choice?",
+  ["There is no downside, custom-built integrations are always superior","They take on unnecessary long-term maintenance burden that the pre-built, vendor-maintained connector would have avoided","Import Sets cannot technically connect to any external application"],1,
+  "Choosing to build custom when a maintained connector already exists means taking on avoidable long-term maintenance work with no real technical benefit."),
+mk(D.ING,"single","Which of these best describes when Discovery, ACC, Service Graph Connectors, and Import Sets/ETL would all realistically be used together within a single organization?",
+  ["Never, an organization must standardize on exactly one ingestion method","Commonly — different data sources naturally call for different tools based on reachability, vendor support, and data format","Only Discovery is ever used in a real deployment"],1,
+  "In practice, most mature CMDB implementations use a mix of these tools, since different sources have different reachability, vendor-support, and data-format characteristics."),
+mk(D.ING,"single","A vendor discontinues support for a Service Graph Connector the organization has relied on for two years. What is the most reasonable immediate fallback?",
+  ["Abandon that data source entirely with no replacement","Transition to a custom Import Set/Transform Map or IntegrationHub ETL integration to maintain ingestion continuity","Switch to Agent Client Collector regardless of whether it fits the data source type"],1,
+  "When a maintained connector is discontinued, the organization-built paths (Import Sets or ETL) are the natural fallback to preserve ingestion continuity, rather than abandoning the source or forcing an ill-fitting tool like ACC onto a non-agent scenario."),
+];
+
+/* ---------------- CSDM FUNDAMENTALS POOL (need 24) ---------------- */
+const CSDM_POOL = [
+mk(D.CSDM,"single","What is the correct order of the CSDM maturity ladder, from least to most mature?",
+  ["Initiate, Plan, Execute, Deliver, Close","Foundation, Crawl, Walk, Run, Fly","Initial, Developing, Defined, Managed"],1,
+  "The CSDM/CMDB Data Foundations Dashboard maturity stages are Foundation, Crawl, Walk, Run, Fly, each widening scope as maturity increases."),
+mk(D.CSDM,"single","A team has just linked Business Applications to their corresponding Application Services for the very first time. Which maturity stage does this represent?",
+  ["Foundation","Crawl","Walk"],1,
+  "Business Application to Application Service mapping is the defining activity of the Crawl stage, the first real relationship-building step above raw Foundation data."),
+mk(D.CSDM,"single","A team finishes linking Technical Services to their Technical Service Offerings, with Support/Change Group sync now active. Which stage is this?",
+  ["Crawl","Walk","Run"],1,
+  "The word \"Technical\" is the direct signal — Technical Service, Technical Service Offering, and Support/Change Group sync are all Walk-stage vocabulary. Run is reserved for Business-Service-layer activity."),
+mk(D.CSDM,"single","A team has just finished mapping Business Service Offerings to their underlying Business Services. Which maturity stage?",
+  ["Walk","Run","Fly"],1,
+  "The word \"Business\" attached to Service/Offering signals Run. Walk covers the equivalent activity one layer down, at the Technical-Service level."),
+mk(D.CSDM,"single","Which maturity stage covers the most advanced relationships, including Information Objects?",
+  ["Run","Fly","Crawl"],1,
+  "Fly is the most mature stage, covering advanced concepts like Information Objects and the most sophisticated relationships in the model."),
+mk(D.CSDM,"single","An enterprise architect wants to track business capabilities across the whole organization. Which CSDM 5 domain covers this?",
+  ["Foundation","Design and Planning","Build and Integration"],1,
+  "Business Capabilities are an architectural/planning concept and belong to the Design domain, alongside Business Applications, Processes, and Information Objects."),
+mk(D.CSDM,"single","A retailer builds a catalog item so employees can request a new laptop. Which CSDM 5 domain does this map to?",
+  ["Foundation","Design and Planning","Service Consumption (Sell/Consume)"],2,
+  "A catalog item is precisely how something gets requested and consumed by an end user — the defining trait of the Sell/Consume domain."),
+mk(D.CSDM,"single","A manufacturing platform owner wants to align production-line monitoring systems to CSDM 5. Which domain fits?",
+  ["Service Delivery (Manage Technical Service)","Sell/Consume","Build and Integration"],0,
+  "Production-line monitoring systems are operational technical infrastructure managed by IT, squarely Service Delivery — not something a person orders, and not a build artifact."),
+mk(D.CSDM,"single","Which service type is defined as \"published to Business Users and underpins one or more business capabilities\"?",
+  ["Technical Service","Application Service","Business Service"],2,
+  "Business Service sits at the top, business-facing layer, consumed by Business Users and tied to business capabilities."),
+mk(D.CSDM,"single","Which service type is \"a logical representation of a deployed system or application stack\"?",
+  ["Application Service","Business Service","Technical Service"],0,
+  "This is the textbook definition of an Application Service, the middle layer representing the actual deployed software."),
+mk(D.CSDM,"single","Which service type is published to Service Owners and underpins one or more business or application services?",
+  ["Business Service","Technical Service","Application Service"],1,
+  "Technical Service (Technology Management Service) sits at the infrastructure/ops layer, owned by IT and underpinning the layers above it."),
+mk(D.CSDM,"single","A company needs to model an application that processes both PII and PCI-regulated data, in a way that satisfies compliance audits. Which CMDB class is purpose-built for this?",
+  ["Business Capability","Information Object","Data Classification"],1,
+  "Information Objects are the CSDM class specifically designed to represent categories of regulated/sensitive data linked to a Business Application."),
+mk(D.CSDM,"single","Which use case genuinely requires modeling data using Information Objects, versus one that does not?",
+  ["A Business Service Management team wants to understand operational impact for consumer parties","An Asset Management team wants to understand asset life-cycle compliancy in a Business Application context"],1,
+  "The keyword is \"compliancy\" — Information Objects exist specifically for compliance/regulated-data scenarios. \"Operational impact for consumer parties\" is an unrelated Sell/Consume concept."),
+mk(D.CSDM,"single","A hospital system needs to track HIPAA-regulated patient data tied to a specific clinical application. Where in CSDM should this be represented?",
+  ["Business Applications and Information Objects","Technology Management Service Offerings and Dynamic CI Groups","Business Capability alone"],0,
+  "Regulated data tied to an application is consistently an Information Object linked to the relevant Business Application, regardless of the specific regulation involved (HIPAA, PCI, or PII)."),
+mk(D.CSDM,"single","A Service Portfolio Manager wants to understand what Application Services a set of Business Service Offerings depend on. Which CSDM stage is this activity associated with?",
+  ["Crawl","Walk","Run"],2,
+  "Business Service Offering dependency mapping sits at the Run stage — the Business-facing layer, one level above the Technical-Service-focused Walk stage."),
+mk(D.CSDM,"single","Which CSDM 5 domain would a construction/integration team's SDLC artifacts and build pipelines most likely map to?",
+  ["Foundation","Build and Integration","Sell/Consume"],1,
+  "Build and Integration covers the construction/integration side of the lifecycle — SDLC components and build artifacts specifically, distinct from planning (Design) or operations (Service Delivery)."),
+mk(D.CSDM,"single","Which CSDM 5 domain holds the raw reference data (locations, business units, product models) everything else depends on?",
+  ["Foundation","Design and Planning","Service Delivery"],0,
+  "Foundation is the base layer of reference data that every other domain's structures ultimately rely on."),
+mk(D.CSDM,"single","An IT team wants to formally document a Business Process alongside its supporting Business Applications for planning purposes. Which domain covers both?",
+  ["Design and Planning","Foundation","Build and Integration"],0,
+  "Business Applications, Business Processes, Business Capabilities, and Information Objects are all modeled within the Design domain, the architecture/planning layer."),
+mk(D.CSDM,"single","A team has completed Foundation-stage work but has not yet begun linking any Business Applications to Application Services. What is their current maturity stage?",
+  ["Crawl","Foundation","Walk"],1,
+  "Until Business App to App Service linking begins, the organization remains at the Foundation stage — Crawl is defined by that specific linking activity starting."),
+mk(D.CSDM,"single","Which CSDM 5 domain does an object belong to if it represents raw, foundational reference data (like a Location or Business Unit) with no dependency on any other domain's data?",
+  ["Foundation","Design and Planning","Sell/Consume"],0,
+  "Foundation is the base layer every other domain's structures ultimately rely on, holding raw reference data with no upstream dependency on the other domains."),
+mk(D.CSDM,"single","A team wants to know whether their Technical Services are properly aligned with Technical Service Offerings before attempting Business Service Offering mapping. What should they check first?",
+  ["Their Walk-stage maturity, since Run-stage work depends on a solid Walk foundation","Their Fly-stage maturity","Nothing, Run-stage work is entirely independent of Walk"],0,
+  "The maturity ladder is progressive — Run-stage (Business Service Offering) work is best undertaken only after Walk-stage (Technical Service Offering) alignment is solid, since Run builds on top of that layer."),
+mk(D.CSDM,"single","Which of these is the best example of Fly-stage maturity work?",
+  ["Linking a Business Application to its Application Service for the first time","Establishing an Information Object relationship representing PCI-regulated data on a payment application","Populating base location and business unit data"],1,
+  "Information Object modeling represents the most advanced, Fly-stage maturity work, well beyond the earlier Crawl (Business App/App Service) and Foundation (base reference data) activities."),
+mk(D.CSDM,"single","A CSDM Fly-stage capability lets an organization do what, that earlier stages cannot?",
+  ["Model advanced concepts like regulated data categories via Information Objects, tied into the broader service model","Populate basic location data for the first time","Discover physical servers for the first time"],0,
+  "Fly stage is specifically about the most advanced relationship modeling, including Information Objects — capabilities that simply are not part of the earlier, more foundational stages."),
+mk(D.CSDM,"single","Which best summarizes the overall purpose of progressing through the CSDM maturity ladder rather than jumping straight to advanced modeling?",
+  ["Each stage builds a necessary foundation the next stage depends on, so skipping ahead risks an unstable, unreliable service model","There is no real benefit to following the stages in order","Later stages are entirely unrelated to earlier ones"],0,
+  "The ladder is progressive by design — each stage's relationships and data quality underpin the next, which is why jumping straight to Fly-stage modeling without solid Foundation/Crawl/Walk work underneath is considered risky practice."),
+];
+
+function shuffleSlice(pool, count) {
+  return pool.slice(0, count);
+}
+
+const SET1 = [].concat(
+  GOV_POOL.slice(0, 26), INS_POOL.slice(0, 15), CFG_POOL.slice(0, 13), ING_POOL.slice(0, 13), CSDM_POOL.slice(0, 8)
+);
+const SET2 = [].concat(
+  GOV_POOL.slice(26, 52), INS_POOL.slice(15, 30), CFG_POOL.slice(13, 26), ING_POOL.slice(13, 26), CSDM_POOL.slice(8, 16)
+);
+const SET3 = [].concat(
+  GOV_POOL.slice(52, 78), INS_POOL.slice(30, 45), CFG_POOL.slice(26, 39), ING_POOL.slice(26, 39), CSDM_POOL.slice(16, 24)
+);
+
+const EXAM_SETS = {
+  set1: { name: "Set A", questions: SET1 },
+  set2: { name: "Set B", questions: SET2 },
+  set3: { name: "Set C", questions: SET3 },
+};
+
+
+
+/* =========================================================
+   APP LOGIC
+   ========================================================= */
+const app = document.getElementById('app');
+let state = { screen: 'landing', setKey: null, qIndex: 0, answers: [], registrant: null, attemptId: null,
+  timeLeft: 0, paused: false, flags: [], reviewMode: false, examEndsAt: null, pausedAt: null };
+
+const EXAM_DURATION_SECONDS = 90 * 60; // 90 minutes, matching the real CIS-DF exam
+const PROGRESS_KEY = 'cisdf_inprogress_v1';
+let timerInterval = null;
+
+/* ---------- Progress persistence: survives reloads, tab closes, and republishes ---------- */
+function saveProgress() {
+  if (state.screen !== 'quiz' && state.screen !== 'review') return;
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      setKey: state.setKey, qIndex: state.qIndex, answers: state.answers, flags: state.flags,
+      registrant: state.registrant, attemptId: state.attemptId,
+      examEndsAt: state.examEndsAt, pausedAt: state.pausedAt,
+      savedAt: Date.now()
+    }));
+  } catch (e) {}
+}
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function clearProgress() {
+  try { localStorage.removeItem(PROGRESS_KEY); } catch (e) {}
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+function computeTimeLeft() {
+  if (state.pausedAt) return Math.max(0, Math.round((state.examEndsAt - state.pausedAt) / 1000));
+  return Math.max(0, Math.round((state.examEndsAt - Date.now()) / 1000));
+}
+function startTimer() {
+  stopTimer();
+  timerInterval = setInterval(() => {
+    state.timeLeft = computeTimeLeft();
+    if (state.paused) return;
+    if (state.timeLeft <= 0) {
+      stopTimer();
+      // time's up — auto-submit whatever has been answered so far
+      state.screen = 'results';
+      render();
+      return;
+    }
+    saveProgress();
+    // update just the timer display without a full re-render, to avoid disrupting typing/focus
+    const timerEl = document.getElementById('timerDisplay');
+    if (timerEl) {
+      timerEl.textContent = formatTime(state.timeLeft);
+      timerEl.classList.toggle('timer-warn', state.timeLeft <= 15 * 60 && state.timeLeft > 5 * 60);
+      timerEl.classList.toggle('timer-danger', state.timeLeft <= 5 * 60);
+    }
+  }, 1000);
+}
+function formatTime(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+/* ---------- Capabilities: db (shared submissions) + user (owner check) + downloads (PDF export) ---------- */
+let dbNS = null, userNS = null, isOwnerFlag = false, downloadsNS = null;
+(async function initCapabilities() {
+  try { dbNS = await claude.use('db'); } catch (e) { dbNS = null; }
+  try { userNS = await claude.use('user'); } catch (e) { userNS = null; }
+  try { downloadsNS = await claude.use('downloads'); } catch (e) { downloadsNS = null; }
+  try { isOwnerFlag = userNS ? (userNS.isOwner ? userNS.isOwner() : false) : false; } catch (e) { isOwnerFlag = false; }
+  if (state.screen === 'landing') renderLanding(); // no-op if a resume prompt or other screen has since taken over
+})();
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+async function dbRecordStart(attemptId, registrant, setKey) {
+  if (!dbNS) return;
+  try {
+    await dbNS.collection('attempts').doc(attemptId).set({
+      firstName: registrant.firstName, lastName: registrant.lastName, email: registrant.email,
+      setKey, setName: EXAM_SETS[setKey].name, status: 'started', startedAt: new Date().toISOString()
+    });
+  } catch (e) { /* outside-link visitors can't write; fail silently, quiz still works */ }
+}
+
+async function dbRecordFinish(attemptId, payload) {
+  if (!dbNS) return;
+  try {
+    await dbNS.collection('attempts').doc(attemptId).update({
+      status: 'completed', completedAt: new Date().toISOString(), ...payload
+    });
+  } catch (e) { /* same graceful no-op */ }
+}
+
+async function dbRecordFeedback(entry) {
+  if (!dbNS) return false;
+  try {
+    await dbNS.collection('feedback').doc(uid()).set(entry);
+    return true;
+  } catch (e) { return false; }
+}
+
+async function dbRecordDownload(attemptId) {
+  if (!dbNS || !attemptId) return;
+  try {
+    await dbNS.collection('attempts').doc(attemptId).update({
+      resultsDownloaded: true, downloadedAt: new Date().toISOString()
+    });
+  } catch (e) { /* graceful no-op */ }
+}
+
+async function getSiteConfig() {
+  if (!dbNS) return { showComments: false };
+  try {
+    const snap = await dbNS.doc('config/site').get();
+    return snap.exists ? snap.data() : { showComments: false };
+  } catch (e) { return { showComments: false }; }
+}
+
+async function setSiteConfig(patch) {
+  if (!dbNS) return false;
+  try {
+    await dbNS.doc('config/site').set(patch);
+    return true;
+  } catch (e) { return false; }
+}
+
+/* =========================================================
+   EXTERNAL TRACKING FALLBACK — Google Form
+   For anyone without a Claude account, or signed in outside
+   the Deloitte organization, whose results/feedback can't
+   reach the in-app database (a platform restriction, not a
+   bug). This form works for any visitor, no account needed,
+   and answers land in a Sheet only the owner can see.
+   ========================================================= */
+const GOOGLE_FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLScAfmIbDocDMQiuuyKu9cFQXDKdaoRhSUyyovr62udf7LRgAA/viewform';
+const GOOGLE_FORM_FIELDS = {
+  firstName: 'entry.533595434',
+  lastName: 'entry.977468947',
+  email: 'entry.1917700046',
+  setName: 'entry.189742627',
+  score: 'entry.592361320',
+  total: 'entry.1641651190',
+  pct: 'entry.871083943',
+  passFail: 'entry.2016470934',
+  downloaded: 'entry.2146492989',
+  rating: 'entry.129705799',
+  comments: 'entry.996622322',
+};
+function buildExternalFormUrl(fields) {
+  const params = new URLSearchParams();
+  Object.entries(GOOGLE_FORM_FIELDS).forEach(([key, entryId]) => {
+    const val = fields[key];
+    if (val !== undefined && val !== null && val !== '') params.set(entryId, String(val));
+  });
+  return GOOGLE_FORM_BASE + '?' + params.toString();
+}
+
+function buildResultsPDF(payload) {
+  const { registrant, setName, score, total, pct, passed, domainTally, reviewData } = payload;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const marginX = 48;
+  let y = 56;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+  doc.text('CIS-DF Practice Exam Results', marginX, y); y += 26;
+
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+  doc.text(`Name: ${registrant ? registrant.firstName + ' ' + registrant.lastName : 'N/A'}`, marginX, y); y += 16;
+  doc.text(`Email: ${registrant ? registrant.email : 'N/A'}`, marginX, y); y += 16;
+  doc.text(`Exam set: ${setName}`, marginX, y); y += 16;
+  doc.text(`Date: ${new Date().toLocaleString()}`, marginX, y); y += 26;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+  doc.text(`Score: ${score} / ${total}  (${pct}%)  —  ${passed ? 'PASS' : 'BELOW PASS MARK'}`, marginX, y); y += 12;
+  doc.setDrawColor(passed ? 47 : 178, passed ? 125 : 58, passed ? 79 : 46);
+  doc.setLineWidth(2); doc.line(marginX, y, 547, y); y += 26;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+  doc.text('Score by domain', marginX, y); y += 18;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
+  Object.entries(domainTally).forEach(([d, v]) => {
+    const p = Math.round((v.correct / v.total) * 100);
+    doc.text(`${d}`, marginX, y);
+    doc.text(`${v.correct} / ${v.total}  (${p}%)`, 400, y);
+    y += 16;
+  });
+  y += 14;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+  doc.text('Questions missed (see the practice site for full explanations)', marginX, y); y += 18;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  const missed = reviewData.filter(r => !r.correct);
+  if (!missed.length) {
+    doc.text('None — perfect score.', marginX, y); y += 14;
+  } else {
+    missed.forEach(r => {
+      if (y > 760) { doc.addPage(); y = 56; }
+      const qLine = `Q${r.i + 1} [${r.domain}]: ${r.q}`;
+      const wrapped = doc.splitTextToSize(qLine, 500);
+      doc.text(wrapped, marginX, y); y += wrapped.length * 12;
+      doc.setTextColor(178, 58, 46);
+      const yourLine = doc.splitTextToSize(`Your answer: ${r.userText}`, 500);
+      doc.text(yourLine, marginX, y); y += yourLine.length * 12;
+      doc.setTextColor(47, 125, 79);
+      const correctLine = doc.splitTextToSize(`Correct: ${r.correctText}`, 500);
+      doc.text(correctLine, marginX, y); y += correctLine.length * 12;
+      doc.setTextColor(0, 0, 0);
+      if (r.doc) {
+        doc.setFontSize(8.5);
+        doc.setTextColor(14, 124, 134);
+        const refLine = doc.splitTextToSize(`Reference: ${r.doc.label} — ${r.doc.url}`, 500);
+        doc.text(refLine, marginX, y); y += refLine.length * 11;
+        doc.setFontSize(9.5);
+        doc.setTextColor(0, 0, 0);
+      }
+      y += 8;
+    });
+  }
+  return doc.output('blob');
+}
+
+function domainColor(domain) {
+  return {
+    [D.GOV]: '#0E7C86', [D.INS]: '#B5750F', [D.CFG]: '#5B7DB1',
+    [D.ING]: '#8A6BB0', [D.CSDM]: '#2F7D4F'
+  }[domain] || '#888';
+}
+
+function getBest(setKey) {
+  try {
+    const v = localStorage.getItem('cisdf_best_' + setKey);
+    return v ? JSON.parse(v) : null;
+  } catch (e) { return null; }
+}
+function setBest(setKey, score, total) {
+  try {
+    const cur = getBest(setKey);
+    if (!cur || score > cur.score) {
+      localStorage.setItem('cisdf_best_' + setKey, JSON.stringify({ score, total }));
+    }
+  } catch (e) {}
+}
+
+function render() {
+  if (state.screen === 'landing') renderLanding();
+  else if (state.screen === 'register') renderRegister();
+  else if (state.screen === 'quiz') renderQuiz();
+  else if (state.screen === 'review') renderReviewGrid();
+  else if (state.screen === 'results') renderResults();
+  else if (state.screen === 'admin') renderAdmin();
+  else if (state.screen === 'resume-prompt') renderResumePrompt(pendingResume);
+}
+
+function domainWeights() {
+  return [
+    { d: D.GOV, w: 35 }, { d: D.INS, w: 20 }, { d: D.CFG, w: 17 },
+    { d: D.ING, w: 17 }, { d: D.CSDM, w: 11 }
+  ];
+}
+
+function renderLanding() {
+  const weights = domainWeights();
+  const barHtml = weights.map(x => `<div style="flex:${x.w};background:${domainColor(x.d)}">${x.w}%</div>`).join('');
+  const legendHtml = weights.map(x => `<div><span class="sw" style="background:${domainColor(x.d)}"></span>${x.d}</div>`).join('');
+
+  const setsHtml = Object.entries(EXAM_SETS).map(([key, s]) => {
+    const best = getBest(key);
+    const bestHtml = best ? `<div class="best">Best attempt: ${best.score}/${best.total}</div>` : '';
+    return `
+      <div class="set-panel">
+        <div class="info">
+          <h3>${s.name}</h3>
+          <p>${s.questions.length} questions &middot; all five domains &middot; scenario-based</p>
+          ${bestHtml}
+        </div>
+        <button class="btn" data-start="${key}">Start exam</button>
+      </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="hero">
+      <div class="hero-inner">
+        <h1>CIS-DF Practice Exams</h1>
+        <p>Three independent, full-length practice sets covering CMDB and CSDM &mdash; built to mirror how the real exam weights each domain, with a full explanation behind every answer.</p>
+        <div class="domain-bar">${barHtml}</div>
+        <div class="domain-legend">${legendHtml}</div>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="sets">${setsHtml}</div>
+
+      <div id="commentsSection"></div>
+
+      <div class="note">
+        Each set is scenario-based and independently scored against the real exam\'s 70% pass mark. Every question &mdash; right or wrong &mdash; comes with a full explanation in the results review, so you can use these for learning, not just testing.
+        <br><br>
+        Created by <strong style="color:var(--text);">Nithin Shubhananda</strong> for learning and self-testing purposes only. Not affiliated with, endorsed by, or sponsored by ServiceNow.
+      </div>
+      ${isOwnerFlag ? '<div class="admin-link"><button id="adminBtn">View submissions (owner only)</button></div>' : ''}
+    </div>`;
+
+  app.querySelectorAll('[data-start]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-start');
+      state = { screen: 'register', setKey: key, qIndex: 0, answers: [], registrant: null, attemptId: null };
+      render();
+      window.scrollTo(0,0);
+    });
+  });
+  const adminBtn = document.getElementById('adminBtn');
+  if (adminBtn) adminBtn.addEventListener('click', () => { state.screen = 'admin'; render(); window.scrollTo(0,0); });
+
+  // comments showcase — only fetched/shown if the owner has turned it on and there's at least one approved comment
+  (async () => {
+    if (!dbNS) return;
+    const cfg = await getSiteConfig();
+    if (!cfg.showComments) return;
+    try {
+      const snap = await dbNS.collection('feedback').where('visible', '==', true).limit(30).get();
+      const rows = (snap && snap.docs) ? snap.docs.map(d => d.data()).filter(d => d.comments) : [];
+      if (!rows.length) return;
+      rows.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+      const cards = rows.slice(0, 9).map(d => {
+        const stars = d.rating ? '&#9733;'.repeat(d.rating) + '&#9734;'.repeat(5 - d.rating) : '';
+        return `<div class="comment-card">
+          ${stars ? `<div class="comment-stars">${stars}</div>` : ''}
+          <p class="comment-text">"${d.comments}"</p>
+          <p class="comment-author">&mdash; ${d.firstName || 'Anonymous'}</p>
+        </div>`;
+      }).join('');
+      document.getElementById('commentsSection').innerHTML = `
+        <h2 class="section-title" style="margin-top:0;">What people are saying</h2>
+        <div class="comments-grid">${cards}</div>`;
+    } catch (e) { /* silently skip the section if it fails to load */ }
+  })();
+}
+
+function renderRegister() {
+  const set = EXAM_SETS[state.setKey];
+  app.innerHTML = `
+    <div class="hero" style="padding:40px 24px;">
+      <div class="hero-inner">
+        <h1 style="font-size:26px;">CIS-DF Practice Exams</h1>
+        <p style="margin-bottom:0;">You are about to start <strong style="color:#F0EEE8;">${set.name}</strong> &mdash; ${set.questions.length} questions.</p>
+      </div>
+    </div>
+    <div class="wrap" style="padding-top:36px;">
+      <div class="reg-card">
+        <h2>Before you begin</h2>
+        <p class="sub">Enter your details to start this practice exam.</p>
+        <div class="field" id="fFirst"><label>First name</label><input type="text" id="firstName" autocomplete="given-name"><div class="err">Please enter your first name.</div></div>
+        <div class="field" id="fLast"><label>Last name</label><input type="text" id="lastName" autocomplete="family-name"><div class="err">Please enter your last name.</div></div>
+        <div class="field" id="fEmail"><label>Email address</label><input type="email" id="email" autocomplete="email"><div class="err">Please enter a valid email address.</div></div>
+        <button class="btn" id="regStartBtn" style="width:100%;">Start exam</button>
+        <p class="reg-privacy">Your name and email are used only to personalize your results and, where enabled, let the organizer see who has attempted this practice exam.</p>
+        <p class="reg-privacy">Created by Nithin Shubhananda for learning and self-testing purposes only. Not affiliated with ServiceNow.</p>
+      </div>
+      <div class="top-actions"><button class="btn secondary" id="backToSets">Choose a different set</button></div>
+    </div>`;
+
+  document.getElementById('backToSets').addEventListener('click', () => { state.screen = 'landing'; render(); window.scrollTo(0,0); });
+
+  document.getElementById('regStartBtn').addEventListener('click', () => {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    document.getElementById('fFirst').classList.toggle('invalid', !firstName);
+    document.getElementById('fLast').classList.toggle('invalid', !lastName);
+    document.getElementById('fEmail').classList.toggle('invalid', !emailOk);
+    if (!firstName || !lastName || !emailOk) return;
+
+    const registrant = { firstName, lastName, email };
+    const attemptId = uid();
+    dbRecordStart(attemptId, registrant, state.setKey);
+
+    state = {
+      screen: 'quiz', setKey: state.setKey, qIndex: 0,
+      answers: new Array(set.questions.length).fill(null),
+      flags: new Array(set.questions.length).fill(false),
+      registrant, attemptId,
+      timeLeft: EXAM_DURATION_SECONDS, paused: false, reviewMode: false,
+      examEndsAt: Date.now() + EXAM_DURATION_SECONDS * 1000, pausedAt: null
+    };
+    saveProgress();
+    startTimer();
+    render();
+    window.scrollTo(0,0);
+  });
+}
+
+function renderAdmin() {
+  app.innerHTML = `
+    <div class="wrap" style="padding-top:36px;">
+      <h2 class="section-title" style="margin-top:0;">Comments on landing page</h2>
+      <div class="mod-toggle-row">
+        <label class="switch">
+          <input type="checkbox" id="showCommentsToggle">
+          <span class="switch-track"></span>
+        </label>
+        <span style="font-size:13.5px;">Show approved comments on the landing page</span>
+      </div>
+      <h2 class="section-title">Submissions</h2>
+      <div id="adminBody"><p class="admin-note">Loading&hellip;</p></div>
+      <h2 class="section-title">Feedback &mdash; toggle which comments are approved to show publicly</h2>
+      <div id="feedbackBody"><p class="admin-note">Loading&hellip;</p></div>
+      <div class="top-actions"><button class="btn secondary" id="backHome">Back</button></div>
+    </div>`;
+  document.getElementById('backHome').addEventListener('click', () => { state.screen = 'landing'; render(); window.scrollTo(0,0); });
+
+  async function loadFeedbackList() {
+    const fbody = document.getElementById('feedbackBody');
+    try {
+      const fsnap = await dbNS.collection('feedback').limit(500).get();
+      const frows = (fsnap && fsnap.docs) ? fsnap.docs.map(d => ({ id: d.id, data: d.data() })) : [];
+      if (!frows.length) {
+        fbody.innerHTML = '<p class="admin-note">No feedback submitted yet.</p>';
+        return;
+      }
+      frows.sort((a, b) => new Date(b.data.submittedAt || 0) - new Date(a.data.submittedAt || 0));
+      const ftrs = frows.map(r => {
+        const d = r.data;
+        const stars = d.rating ? '&#9733;'.repeat(d.rating) + '&#9734;'.repeat(5 - d.rating) : '&mdash;';
+        const isVisible = !!d.visible;
+        return '<tr><td>' + (d.firstName || 'Anonymous') + ' ' + (d.lastName || '') + '</td><td>' + (d.email || '') +
+          '</td><td>' + (d.setName || d.source || '') + '</td><td>' + stars + '</td><td style="max-width:260px;">' + (d.comments || '') +
+          '</td><td>' + (d.submittedAt ? new Date(d.submittedAt).toLocaleString() : '') + '</td>' +
+          '<td><button class="mod-btn ' + (isVisible ? 'on' : '') + '" data-fid="' + r.id + '" data-visible="' + isVisible + '">' + (isVisible ? 'Shown' : 'Hidden') + '</button></td></tr>';
+      }).join('');
+      fbody.innerHTML = '<p class="admin-note">' + frows.length + ' feedback entr' + (frows.length === 1 ? 'y' : 'ies') + ' recorded. Click a status button to toggle whether that comment can appear on the landing page.</p>' +
+        '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Set</th><th>Rating</th><th>Comments</th><th>Submitted</th><th>Public?</th></tr></thead><tbody>' + ftrs + '</tbody></table></div>';
+
+      fbody.querySelectorAll('[data-fid]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const fid = btn.getAttribute('data-fid');
+          const currentlyVisible = btn.getAttribute('data-visible') === 'true';
+          btn.disabled = true;
+          try {
+            await dbNS.collection('feedback').doc(fid).update({ visible: !currentlyVisible });
+          } catch (e) {}
+          loadFeedbackList();
+        });
+      });
+    } catch (e) {
+      fbody.innerHTML = '<p class="admin-note">Could not load feedback right now (' + (e && e.code ? e.code : 'unknown error') + ').</p>';
+    }
+  }
+
+  (async () => {
+    if (!dbNS) {
+      document.getElementById('adminBody').innerHTML = '<p class="admin-note">No shared database is available in this view.</p>';
+      document.getElementById('feedbackBody').innerHTML = '<p class="admin-note">No shared database is available in this view.</p>';
+      return;
+    }
+
+    const cfg = await getSiteConfig();
+    const toggle = document.getElementById('showCommentsToggle');
+    toggle.checked = !!cfg.showComments;
+    toggle.addEventListener('change', async () => {
+      await setSiteConfig({ showComments: toggle.checked });
+    });
+
+    const body = document.getElementById('adminBody');
+    try {
+      const snap = await dbNS.collection('attempts').limit(500).get();
+      const rows = (snap && snap.docs) ? snap.docs.map(d => d.data()) : [];
+      if (!rows.length) {
+        body.innerHTML = '<p class="admin-note">No submissions yet.</p>';
+      } else {
+        rows.sort((a, b) => new Date(b.startedAt || 0) - new Date(a.startedAt || 0));
+        const trs = rows.map(d => {
+          const scoreStr = d.status === 'completed' ? (d.score + '/' + d.total + ' (' + d.pct + '%)') : '&mdash;';
+          const downloadStr = d.resultsDownloaded ? ('Yes &middot; ' + new Date(d.downloadedAt).toLocaleString()) : 'No';
+          return '<tr><td>' + (d.firstName || '') + ' ' + (d.lastName || '') + '</td><td>' + (d.email || '') +
+            '</td><td>' + (d.setName || d.setKey || '') + '</td><td>' + d.status + '</td><td>' + scoreStr +
+            '</td><td>' + (d.startedAt ? new Date(d.startedAt).toLocaleString() : '') + '</td><td>' + downloadStr + '</td></tr>';
+        }).join('');
+        body.innerHTML = '<p class="admin-note">' + rows.length + ' attempt(s) recorded. Visible only to you as the artifact owner.</p>' +
+          '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Set</th><th>Status</th><th>Score</th><th>Started</th><th>PDF downloaded?</th></tr></thead><tbody>' + trs + '</tbody></table></div>';
+      }
+    } catch (e) {
+      body.innerHTML = '<p class="admin-note">Could not load submissions right now (' + (e && e.code ? e.code : 'unknown error') + ').</p>';
+    }
+
+    loadFeedbackList();
+  })();
+}
+
+function renderQuiz() {
+  const set = EXAM_SETS[state.setKey];
+  const total = set.questions.length;
+  const q = set.questions[state.qIndex];
+  const selected = state.answers[state.qIndex] || [];
+  const flagged = state.flags[state.qIndex];
+
+  if (state.paused) {
+    app.innerHTML = `
+      <div class="wrap" style="padding-top:80px; text-align:center;">
+        <div class="q-card" style="max-width:420px; margin:0 auto;">
+          <h2 style="margin-top:0;">Exam paused</h2>
+          <p style="color:var(--text-muted); font-size:14px; line-height:1.6;">
+            The timer is stopped. Note: this pause option is provided for practice convenience only &mdash;
+            the real CIS-DF exam via Pearson VUE/OnVUE does <strong>not</strong> allow pausing once started; its clock runs continuously.
+          </p>
+          <div class="score-num" style="font-size:32px; margin:16px 0;">${formatTime(state.timeLeft)}</div>
+          <button class="btn" id="resumeBtn" style="width:100%;">Resume exam</button>
+        </div>
+      </div>`;
+    document.getElementById('resumeBtn').addEventListener('click', () => {
+      // shift examEndsAt forward by however long the pause lasted, so paused time isn't counted against the clock
+      const pausedDurationMs = Date.now() - state.pausedAt;
+      state.examEndsAt += pausedDurationMs;
+      state.pausedAt = null;
+      state.paused = false;
+      startTimer();
+      saveProgress();
+      renderQuiz();
+    });
+    return;
+  }
+
+  const ticks = set.questions.map((_, i) => {
+    let cls = 'tick';
+    if (i < state.qIndex) cls += ' done';
+    else if (i === state.qIndex) cls += ' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  const optType = q.type === 'multi' ? 'checkbox' : 'radio';
+  const optionsHtml = q.options.map((opt, i) => {
+    const isSel = selected.includes(i);
+    return `<div class="opt ${optType} ${isSel ? 'selected' : ''}" data-idx="${i}">
+      <div class="mark"></div><div>${opt}</div>
+    </div>`;
+  }).join('');
+
+  const requiredCount = q.correct.length;
+  const hint = q.type === 'multi'
+    ? `<div class="q-hint">Select exactly ${requiredCount} answer${requiredCount > 1 ? 's' : ''} &mdash; you have selected ${selected.length} of ${requiredCount}</div>`
+    : '';
+  const canProceed = q.type === 'multi' ? selected.length === requiredCount : selected.length === 1;
+  const isLast = state.qIndex === total - 1;
+  const timerClass = state.timeLeft <= 5*60 ? 'timer-danger' : (state.timeLeft <= 15*60 ? 'timer-warn' : '');
+
+  app.innerHTML = `
+    <div class="wrap" style="padding-top:24px;">
+      <div class="timer-bar">
+        <div id="timerDisplay" class="timer-display ${timerClass}">${formatTime(state.timeLeft)}</div>
+        <button class="btn secondary small-btn" id="pauseBtn">Pause</button>
+        <button class="btn secondary small-btn" id="reviewGridBtn">Review</button>
+      </div>
+      <div class="quiz-top">
+        <div class="progress-ticks">${ticks}</div>
+        <div class="q-meta"><span class="domain-tag">${q.domain}</span><span>Q${state.qIndex + 1} / ${total}</span></div>
+      </div>
+      <div class="q-card">
+        <div class="q-card-head">
+          <p class="q-text" style="margin-bottom:0;">${q.q}</p>
+          <button class="flag-btn ${flagged ? 'flagged' : ''}" id="flagBtn" title="Flag for review">${flagged ? '&#9873; Flagged' : '&#9872; Flag for review'}</button>
+        </div>
+        ${hint}
+        <div class="options">${optionsHtml}</div>
+      </div>
+      <div class="quiz-nav">
+        <button class="btn secondary" id="backBtn" ${state.qIndex === 0 ? 'disabled' : ''}>Back</button>
+        <button class="btn" id="nextBtn" ${canProceed ? '' : 'disabled'}>${isLast ? 'Review & submit' : 'Next question'}</button>
+      </div>
+    </div>`;
+
+  app.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.getAttribute('data-idx'), 10);
+      let cur = state.answers[state.qIndex] || [];
+      if (q.type === 'multi') {
+        if (cur.includes(idx)) {
+          cur = cur.filter(x => x !== idx);
+        } else if (cur.length < requiredCount) {
+          cur = [...cur, idx];
+        }
+        // if already at the required count and a new option is clicked, ignore it
+        // until the person deselects one first — keeps the "select exactly N" rule clear
+      } else {
+        cur = [idx];
+      }
+      state.answers[state.qIndex] = cur;
+      saveProgress();
+      renderQuiz();
+    });
+  });
+  const backBtn = document.getElementById('backBtn');
+  if (backBtn) backBtn.addEventListener('click', () => { state.qIndex--; saveProgress(); renderQuiz(); window.scrollTo(0,0); });
+  const nextBtn = document.getElementById('nextBtn');
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    if (isLast) { state.reviewMode = true; state.screen = 'review'; saveProgress(); render(); window.scrollTo(0,0); }
+    else { state.qIndex++; saveProgress(); renderQuiz(); window.scrollTo(0,0); }
+  });
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    state.paused = true;
+    state.pausedAt = Date.now();
+    stopTimer();
+    saveProgress();
+    renderQuiz();
+  });
+  document.getElementById('flagBtn').addEventListener('click', () => {
+    state.flags[state.qIndex] = !state.flags[state.qIndex];
+    saveProgress();
+    renderQuiz();
+  });
+  document.getElementById('reviewGridBtn').addEventListener('click', () => {
+    state.screen = 'review'; saveProgress(); render(); window.scrollTo(0,0);
+  });
+}
+
+function renderReviewGrid() {
+  const set = EXAM_SETS[state.setKey];
+  const total = set.questions.length;
+  const unanswered = state.answers.filter(a => !a || a.length === 0).length;
+  const flaggedCount = state.flags.filter(Boolean).length;
+
+  const cells = set.questions.map((q, i) => {
+    const answered = state.answers[i] && state.answers[i].length > 0;
+    const flagged = state.flags[i];
+    let cls = 'grid-cell';
+    if (answered) cls += ' answered';
+    if (flagged) cls += ' cell-flagged';
+    return `<button class="${cls}" data-jump="${i}">${i + 1}</button>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="wrap" style="padding-top:32px;">
+      <div class="timer-bar" style="margin-bottom:24px;">
+        <div id="timerDisplay" class="timer-display ${state.timeLeft <= 5*60 ? 'timer-danger' : (state.timeLeft <= 15*60 ? 'timer-warn' : '')}">${formatTime(state.timeLeft)}</div>
+        <button class="btn secondary small-btn" id="pauseBtn2">Pause</button>
+      </div>
+      <h2 class="section-title" style="margin-top:0;">Review before you submit</h2>
+      <p style="color:var(--text-muted); font-size:14px;">${unanswered} unanswered &middot; ${flaggedCount} flagged for review. Click any question number to jump to it.</p>
+      <div class="review-grid-legend">
+        <span><span class="legend-dot legend-answered"></span> Answered</span>
+        <span><span class="legend-dot legend-unanswered"></span> Unanswered</span>
+        <span><span class="legend-dot legend-flagged"></span> Flagged</span>
+      </div>
+      <div class="review-grid">${cells}</div>
+      <div class="top-actions">
+        <button class="btn secondary" id="backToQuizBtn">Back to exam</button>
+        <button class="btn" id="submitExamBtn">Submit exam</button>
+      </div>
+    </div>`;
+
+  app.querySelectorAll('[data-jump]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.qIndex = parseInt(btn.getAttribute('data-jump'), 10);
+      state.screen = 'quiz';
+      render(); window.scrollTo(0,0);
+    });
+  });
+  document.getElementById('backToQuizBtn').addEventListener('click', () => {
+    state.screen = 'quiz'; render(); window.scrollTo(0,0);
+  });
+  document.getElementById('submitExamBtn').addEventListener('click', () => {
+    state.screen = 'results'; render(); window.scrollTo(0,0);
+  });
+  document.getElementById('pauseBtn2').addEventListener('click', () => {
+    state.paused = true;
+    state.pausedAt = Date.now();
+    stopTimer();
+    saveProgress();
+    state.screen = 'quiz'; render();
+  });
+}
+
+/* =========================================================
+   REFERENCE LINKS — verified, real ServiceNow documentation/
+   community pages, mapped by topic. Each was checked against a
+   live search result before inclusion; none are fabricated.
+   Applied only within the reasoning/explanation section, never
+   in the question or option text itself.
+   ========================================================= */
+const DOC_LINKS = {
+  DATA_MANAGER: { url: 'https://www.servicenow.com/docs/y7ZDgL2~MPpa35d88l6iIg', label: 'ServiceNow Docs — CMDB Data Manager' },
+  LIFECYCLE_RULES: { url: 'https://www.servicenow.com/docs/r/xanadu/servicenow-platform/configuration-management-database-cmdb/life-cycle-rules-d66784e20263.html', label: 'ServiceNow Docs — Life-cycle rules & retirement definitions' },
+  HEALTH_DASHBOARD: { url: 'https://www.servicenow.com/community/itsm-articles/understanding-cmdb-health/ta-p/2307033', label: 'ServiceNow Community — Understanding CMDB Health' },
+  CI_CLASS_MANAGER: { url: 'https://www.servicenow.com/community/developer-forum/principal-class-cmdb/m-p/3418177', label: 'ServiceNow Community — Principal Class in CI Class Manager' },
+  IRE_RECONCILIATION: { url: 'https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/c_CompsandProcessIDandReconcil.html', label: 'ServiceNow Docs — Identification & Reconciliation Engine (IRE)' },
+  CMDB360: { url: 'https://www.servicenow.com/docs/r/xanadu/servicenow-platform/configuration-management-database-cmdb/multisource-cmdb.html', label: 'ServiceNow Docs — CMDB 360 / Multisource CMDB' },
+  CSDM_OVERVIEW: { url: 'https://www.servicenow.com/products/it-operations-management/what-is-csdm.html', label: 'ServiceNow — What is CSDM?' },
+  CSDM_REFERENCE: { url: 'https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/csdm-content-frame-reference.html', label: 'ServiceNow Docs — CSDM Reference' },
+  DISCOVERY: { url: 'https://www.servicenow.com/standard/resource-center/data-sheet/ds-discovery.html', label: 'ServiceNow — Discovery data sheet' },
+  ACC: { url: 'https://www.servicenow.com/products/agent-client-collector.html', label: 'ServiceNow — Agent Client Collector' },
+  SGC: { url: 'https://www.servicenow.com/products/service-graph-connectors.html', label: 'ServiceNow — Service Graph Connectors' },
+  UNIFIED_MAP: { url: 'https://www.servicenow.com/docs/JG1HJIspS23EbhQh7mhQKQ', label: 'ServiceNow Docs — Unified Map' },
+  CI_RELATIONSHIPS: { url: 'https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/c_CIRelationships.html', label: 'ServiceNow Docs — CI Relationships' },
+  QUERY_BUILDER: { url: 'https://www.servicenow.com/community/cmdb-forum/a-deep-dive-into-servicenow-query-builder-and-unified-map-for/m-p/3493314', label: 'ServiceNow Community — CMDB Query Builder deep dive' },
+};
+
+function getDocLink(q) {
+  const rules = [
+    [/agent client collector|\bacc\b/, 'ACC'],
+    [/service graph connector/, 'SGC'],
+    [/cmdb 360|multisource/, 'CMDB360'],
+    [/unified map/, 'UNIFIED_MAP'],
+    [/query builder/, 'QUERY_BUILDER'],
+    [/relationship type|runs on::runs|runs::runs|cmdb_rel_ci|many-to-many|one-to-many/, 'CI_RELATIONSHIPS'],
+    [/principal class|ci class manager|basic info tab|attributes tab|\bderived\b tab|class upgrade|class downgrade|class switch|table inheritance|custom ci class|sn_cmdb_admin/, 'CI_CLASS_MANAGER'],
+    [/identification rule|reconciliation|\bire\b|priority number/, 'IRE_RECONCILIATION'],
+    [/life cycle mapping|life_cycle|life-cycle stage|csdm 5 domain|business capability|information object|business service|application service|technical service/, 'CSDM_REFERENCE'],
+    [/csdm|crawl|walk stage|run stage|fly stage|maturity/, 'CSDM_OVERVIEW'],
+    [/attestation|certification|retire|archive|delete polic|data manager/, 'DATA_MANAGER'],
+    [/lifecycle polic|life-cycle polic|retirement definition/, 'LIFECYCLE_RULES'],
+    [/completeness scorecard|correctness scorecard|compliance scorecard|health dashboard|duplicate ci\b|duplicate cis\b|duplicate record|duplicate metric|orphan ci\b|orphan cis\b|orphan rule|orphan metric|stale ci\b|stale cis\b|\bscorecard\b/, 'HEALTH_DASHBOARD'],
+    [/\bdiscovery\b/, 'DISCOVERY'],
+  ];
+  // Pass 1: match against the question stem only, so a distractor mentioned
+  // only in the explanation (e.g. "not ACC") can't hijack the topic.
+  const qText = q.q.toLowerCase();
+  for (const [re, key] of rules) if (re.test(qText)) return DOC_LINKS[key];
+  // Pass 2: fall back to question + explanation combined.
+  const fullText = qText + ' ' + q.explain.toLowerCase();
+  for (const [re, key] of rules) if (re.test(fullText)) return DOC_LINKS[key];
+  return null;
+}
+
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  const sa = [...a].sort(), sb = [...b].sort();
+  return sa.every((v, i) => v === sb[i]);
+}
+
+function renderResults() {
+  stopTimer();
+  clearProgress();
+  const set = EXAM_SETS[state.setKey];
+  const total = set.questions.length;
+  let score = 0;
+  const domainTally = {};
+  const reviewData = [];
+
+  const reviewHtml = set.questions.map((q, i) => {
+    const userAns = state.answers[i] || [];
+    const correct = arraysEqual(userAns, q.correct);
+    if (correct) score++;
+    if (!domainTally[q.domain]) domainTally[q.domain] = { correct: 0, total: 0 };
+    domainTally[q.domain].total++;
+    if (correct) domainTally[q.domain].correct++;
+
+    const userText = userAns.length ? userAns.map(idx => q.options[idx]).join('; ') : '(no answer)';
+    const correctText = q.correct.map(idx => q.options[idx]).join('; ');
+    const doc = getDocLink(q);
+    const docHtml = doc ? `<div class="review-doclink"><a href="${doc.url}" target="_blank" rel="noopener">${doc.label} &#8599;</a></div>` : '';
+    reviewData.push({ i, domain: q.domain, q: q.q, userText, correctText, correct, doc });
+
+    return `
+      <div class="review-item ${correct ? 'right' : 'wrong'}">
+        <div class="review-head"><span>${q.domain}</span><span>Question ${i + 1} &middot; ${correct ? 'Correct' : 'Incorrect'}</span></div>
+        <p class="review-q">${q.q}</p>
+        <div class="review-ans"><span class="lbl">Your answer: </span><span class="val ${correct ? '' : 'wrong-val'}">${userText}</span></div>
+        ${correct ? '' : `<div class="review-ans"><span class="lbl">Correct answer: </span><span class="val right-val">${correctText}</span></div>`}
+        <div class="review-explain"><strong>Why: </strong>${q.explain}${docHtml}</div>
+      </div>`;
+  }).join('');
+
+  setBest(state.setKey, score, total);
+  const pct = Math.round((score / total) * 100);
+  const passed = pct >= 70;
+
+  if (state.attemptId) {
+    dbRecordFinish(state.attemptId, { score, total, pct, passed, domainTally });
+  }
+
+  const domainRows = Object.entries(domainTally).map(([d, v]) => {
+    const p = Math.round((v.correct / v.total) * 100);
+    return `
+      <div class="dscore-row">
+        <div class="dlabel">${d}</div>
+        <div class="dscore-track"><div class="dscore-fill" style="width:${p}%;background:${domainColor(d)}"></div></div>
+        <div class="dscore-val">${v.correct}/${v.total}</div>
+      </div>`;
+  }).join('');
+
+  const nameLine = state.registrant ? `<p style="color:var(--text-muted);margin:0 0 18px;">Results for ${state.registrant.firstName} ${state.registrant.lastName} (${state.registrant.email})</p>` : '';
+
+  const registrantFullName = state.registrant ? (state.registrant.firstName + ' ' + state.registrant.lastName).trim() : '';
+
+  app.innerHTML = `
+    <div class="wrap" style="padding-top:36px;">
+      ${nameLine}
+      <div class="score-block">
+        <div>
+          <div class="score-num">${score}/${total}</div>
+          <div class="score-pct">${pct}% &middot; pass mark is 70%</div>
+        </div>
+        <span class="badge ${passed ? 'pass' : 'fail'}">${passed ? 'PASS' : 'BELOW PASS MARK'}</span>
+      </div>
+
+      <div class="top-actions" style="margin-top:0; margin-bottom:28px;">
+        <button class="btn secondary" id="downloadPdfBtn">Download results as PDF</button>
+        <span id="downloadStatus" style="font-size:13px; color:var(--text-muted); align-self:center;"></span>
+      </div>
+
+      <h2 class="section-title">Score by domain</h2>
+      <div class="domain-scores">${domainRows}</div>
+
+      <div class="feedback-card" id="feedbackCard">
+        <h2 style="margin:0 0 6px; font-size:18px;">Before you review the answers &mdash; how was this practice exam?</h2>
+        <p style="color:var(--text-muted); font-size:13.5px; margin:0 0 4px;">Rate it, leave a comment if you like, then send it to the organizer. The detailed answer-by-answer review is right below this.</p>
+        <div class="star-row" id="starRow">
+          ${[1,2,3,4,5].map(n => `<button type="button" class="star-btn" data-star="${n}">&#9733;</button>`).join('')}
+        </div>
+        <textarea id="feedbackText" placeholder="Anything confusing, incorrect, or that could be improved? (optional)"></textarea>
+        <div class="field" style="margin-top:12px; margin-bottom:0;">
+          <label>Name</label>
+          <input type="text" id="feedbackName" value="${registrantFullName}" placeholder="Name">
+        </div>
+        <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <a href="#" id="externalSaveLink" target="_blank" class="btn" style="text-decoration:none; display:inline-block;">Send my results &amp; feedback</a>
+          <span id="feedbackStatus" style="font-size:13px; color:var(--text-muted);">Opens a short form to confirm &mdash; no account needed.</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">Full review &mdash; every question explained</h2>
+      ${reviewHtml}
+
+      <div class="top-actions">
+        <button class="btn secondary" id="retakeBtn">Retake ${set.name}</button>
+        <button class="btn" id="homeBtn">Choose another set</button>
+      </div>
+      <footer class="page-foot">CIS-DF Practice Exams &middot; created by Nithin Shubhananda for learning and self-testing purposes only &middot; not affiliated with ServiceNow</footer>
+    </div>`;
+
+  let starValue = 0;
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      starValue = parseInt(btn.getAttribute('data-star'), 10);
+      document.querySelectorAll('.star-btn').forEach(b => {
+        b.classList.toggle('on', parseInt(b.getAttribute('data-star'), 10) <= starValue);
+      });
+    });
+  });
+
+  let downloadedFlag = false;
+
+  document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('downloadStatus');
+    if (typeof window.jspdf === 'undefined') {
+      statusEl.textContent = 'PDF library did not load — try refreshing the page.';
+      return;
+    }
+    statusEl.textContent = 'Preparing PDF…';
+    try {
+      const blob = buildResultsPDF({
+        registrant: state.registrant, setName: set.name, score, total, pct, passed, domainTally, reviewData
+      });
+      const safeName = (state.registrant ? state.registrant.firstName + '-' + state.registrant.lastName : 'results').replace(/[^a-zA-Z0-9-]/g, '');
+      const filename = `CIS-DF-${set.name.replace(/\s+/g,'')}-${safeName}.pdf`;
+
+      if (downloadsNS) {
+        // Running inside a Claude artifact viewer — use its native save prompt.
+        const result = await downloadsNS.save({ filename, data: blob });
+        statusEl.textContent = result.status === 'saved' ? 'Downloaded.' : 'Sent to your chosen destination.';
+      } else {
+        // Running as a standalone HTML file (or any browser outside Claude) —
+        // fall back to a normal browser download, which needs no special capability.
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+        statusEl.textContent = 'Downloaded.';
+      }
+      downloadedFlag = true;
+      dbRecordDownload(state.attemptId);
+    } catch (e) {
+      if (e && e.code === 'declined') { statusEl.textContent = ''; }
+      else { statusEl.textContent = 'Could not generate the download right now.'; }
+    }
+  });
+
+  document.getElementById('externalSaveLink').addEventListener('click', (e) => {
+    const nameEntered = document.getElementById('feedbackName').value.trim();
+    const nameParts = nameEntered.split(/\s+/);
+    const firstName = nameParts[0] || (state.registrant ? state.registrant.firstName : '');
+    const lastName = nameParts.slice(1).join(' ') || (state.registrant ? state.registrant.lastName : '');
+    const comments = document.getElementById('feedbackText').value.trim();
+
+    // Best-effort: also try the in-app database in case this viewer happens to
+    // have access to it. Harmless no-op for everyone else — the Google Form
+    // below is what actually guarantees delivery regardless of account.
+    dbRecordFeedback({
+      rating: starValue || null, comments: comments || null, firstName, lastName,
+      email: state.registrant ? state.registrant.email : '',
+      setKey: state.setKey, setName: set.name, score, total, pct,
+      visible: false, source: 'results', submittedAt: new Date().toISOString()
+    });
+
+    const url = buildExternalFormUrl({
+      firstName, lastName,
+      email: state.registrant ? state.registrant.email : '',
+      setName: set.name,
+      score, total, pct,
+      passFail: passed ? 'PASS' : 'FAIL',
+      downloaded: downloadedFlag ? 'Yes' : 'No',
+      rating: starValue || '',
+      comments,
+    });
+    e.currentTarget.setAttribute('href', url);
+  });
+
+  document.getElementById('retakeBtn').addEventListener('click', () => {
+    state.screen = 'register'; state.qIndex = 0; state.answers = new Array(total).fill(null); state.attemptId = null;
+    render(); window.scrollTo(0,0);
+  });
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    state = { screen: 'landing', setKey: null, qIndex: 0, answers: [], registrant: null, attemptId: null };
+    render(); window.scrollTo(0,0);
+  });
+}
+
+/* ---------- Direct-link routing: ?set=set1 / set2 / set3 jumps straight to registration ---------- */
+function renderResumePrompt(saved) {
+  const set = EXAM_SETS[saved.setKey];
+  const timeLeftNow = saved.pausedAt
+    ? Math.max(0, Math.round((saved.examEndsAt - saved.pausedAt) / 1000))
+    : Math.max(0, Math.round((saved.examEndsAt - Date.now()) / 1000));
+  const expired = timeLeftNow <= 0;
+  app.innerHTML = `
+    <div class="wrap" style="padding-top:60px; text-align:center;">
+      <div class="q-card" style="max-width:460px; margin:0 auto;">
+        <h2 style="margin-top:0;">${expired ? 'Your previous exam timed out' : 'Resume your exam?'}</h2>
+        <p style="color:var(--text-muted); font-size:14px; line-height:1.6;">
+          ${expired
+            ? `We found an in-progress attempt at ${set.name} for ${saved.registrant ? saved.registrant.firstName : 'you'}, but its 90-minute limit has passed. You can submit what was answered, or start a fresh attempt.`
+            : `We found an in-progress attempt at <strong>${set.name}</strong> for ${saved.registrant ? saved.registrant.firstName : 'you'} &mdash; question ${saved.qIndex + 1} of ${set.questions.length}, with <strong>${formatTime(timeLeftNow)}</strong> left on the clock.`}
+        </p>
+        <div class="top-actions" style="margin-top:20px;">
+          <button class="btn secondary" id="discardBtn">Start over</button>
+          <button class="btn" id="resumeSavedBtn">${expired ? 'Submit as-is' : 'Resume exam'}</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('discardBtn').addEventListener('click', () => {
+    clearProgress();
+    pendingResume = null;
+    state = { screen: 'landing', setKey: null, qIndex: 0, answers: [], registrant: null, attemptId: null };
+    render();
+  });
+  document.getElementById('resumeSavedBtn').addEventListener('click', () => {
+    pendingResume = null;
+    state = {
+      screen: expired ? 'results' : 'quiz',
+      setKey: saved.setKey, qIndex: saved.qIndex,
+      answers: saved.answers, flags: saved.flags,
+      registrant: saved.registrant, attemptId: saved.attemptId,
+      timeLeft: timeLeftNow, paused: false,
+      examEndsAt: saved.examEndsAt, pausedAt: null
+    };
+    if (!expired) startTimer();
+    render();
+    window.scrollTo(0,0);
+  });
+}
+
+let pendingResume = null;
+(function initRoute() {
+  const saved = loadProgress();
+  if (saved && saved.setKey && EXAM_SETS[saved.setKey]) {
+    pendingResume = saved;
+    state.screen = 'resume-prompt';
+    render();
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const setParam = params.get('set');
+  if (setParam && EXAM_SETS[setParam]) {
+    state = { screen: 'register', setKey: setParam, qIndex: 0, answers: [], registrant: null, attemptId: null };
+  }
+  render();
+})();
+</script>
+</body>
+</html>
+
